@@ -1,0 +1,201 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+:root {
+  /* Government-Grade Light Theme Base */
+  --bg-canvas: #F7F8FA;
+  --bg-surface: #FFFFFF;
+  --bg-surface-subtle: #F1F5F9;
+  --bg-surface-muted: #E2E8F0;
+
+  /* Primary Brand - Indian Government Deep Navy */
+  --color-primary: #0F4C81;
+  --color-primary-hover: #0C3D68;
+  --color-primary-light: #EBF3FA;
+
+  /* Secondary Accent - Slate Ocean */
+  --color-secondary: #3F72AF;
+
+  /* Semantic Status Colors */
+  --color-success: #2E7D32;
+  --color-warning: #E65100;
+  --color-danger: #D32F2F;
+
+  /* High Contrast Typography */
+  --text-primary: #1F2937;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
+  --text-inverse: #FFFFFF;
+
+  /* Subtle Borders & Dividers */
+  --border-subtle: #E5E7EB;
+  --border-medium: #CBD5E1;
+
+  /* Shadows - Layered Soft Ambient Elevations */
+  --shadow-elevation-1: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow-elevation-2: 0 4px 14px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --shadow-elevation-3: 0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.06);
+}
+
+.dark {
+  --bg-canvas: #0B111A;
+  --bg-surface: #131D2A;
+  --bg-surface-subtle: #1B2738;
+  --bg-surface-muted: #24344B;
+
+  --text-primary: #F9FAFB;
+  --text-secondary: #CBD5E1;
+  --text-muted: #9CA3AF;
+
+  --border-subtle: #24344B;
+  --border-medium: #334155;
+}
+
+/* Body & Global Typography */
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide Scrollbars in horizontal chips for native iOS / Android feel */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* MapLibre Container & Custom Markers */
+.maplibregl-canvas-container {
+  width: 100%;
+  height: 100%;
+}
+
+.maplibregl-ctrl-bottom-right,
+.maplibregl-ctrl-bottom-left {
+  z-index: 10 !important;
+}
+
+/* Google Maps-Style Pulsing Blue Location Beacon */
+.gps-pulse-container {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.gps-pulse-ring {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: rgba(30, 136, 229, 0.25);
+  animation: gps-pulse-anim 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+  pointer-events: none;
+}
+
+.gps-pulse-dot {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #1A73E8;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(26, 115, 232, 0.5);
+  z-index: 2;
+}
+
+@keyframes gps-pulse-anim {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.6);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Cluster Marker Badges */
+.map-cluster-badge {
+  background: #0F4C81;
+  color: white;
+  border: 2.5px solid white;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(15, 76, 129, 0.35);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.map-cluster-badge:hover {
+  transform: scale(1.1);
+}
+
+/* Time Slider Glassmorphism */
+.time-slider-track {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  background: #CBD5E1;
+  outline: none;
+  transition: background 0.2s;
+}
+
+.dark .time-slider-track {
+  background: #334155;
+}
+
+.time-slider-track::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0F4C81;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.time-slider-track::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* Subtle 200-300ms Motion Transitions */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
