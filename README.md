@@ -116,6 +116,5 @@ Open `http://localhost:3000` in your browser.
 
 ## 👥 Contributors & SIH Team
 
-- **Project Lead & Developer**: Anuj Bhardwaj
+- **Project Lead & Developer**:  Anuj Bhardwaj,Gourob Karmakar, Sonu Yadav, Samir Khan, Sneha Bhagat, Manish Kumar
 - **Contact**: `anujbhardwaj817@gmail.com`
-- **License**: MIT
