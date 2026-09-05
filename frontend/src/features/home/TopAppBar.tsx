@@ -70,6 +70,7 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
             src="/apda_logo.png"
             alt="Apda Mitra Official Crest"
             fill
+            sizes="44px"
             className="object-cover"
             priority
           />

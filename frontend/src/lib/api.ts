@@ -1,8 +1,21 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+export function getApiBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  // In the browser, use relative same-origin path so Next.js rewrites proxy cleanly without CORS or IPv6 issues
+  if (typeof window !== 'undefined') {
+    return '/api/v1';
+  }
+  // In SSR / Node server environment, target IPv4 loopback directly
+  return 'http://127.0.0.1:8000/api/v1';
+}
 
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const baseUrl = getApiBaseUrl();
+  const primaryUrl = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
+
   try {
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const res = await fetch(primaryUrl, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -16,7 +29,26 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
 
     return await res.json();
   } catch (error) {
-    console.warn(`Fetch API warning for ${endpoint}:`, error);
+    // If browser same-origin proxy or localhost failed with network error, attempt direct IPv4 backend fallback
+    if (typeof window !== 'undefined' && !endpoint.startsWith('http') && baseUrl === '/api/v1') {
+      try {
+        const directUrl = `http://127.0.0.1:8000/api/v1${endpoint}`;
+        const fallbackRes = await fetch(directUrl, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            ...options?.headers,
+          },
+        });
+        if (fallbackRes.ok) {
+          return await fallbackRes.json();
+        }
+      } catch {
+        // Fallback also failed, report genuine error below
+      }
+    }
+
+    console.error(`[API Network Error] ${endpoint}:`, error);
     throw error;
   }
 }
