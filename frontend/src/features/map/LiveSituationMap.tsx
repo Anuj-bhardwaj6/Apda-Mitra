@@ -1,10 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MapLibreMap } from '@/components/map/MapLibreMap';
+import dynamic from 'next/dynamic';
 import { CommunityReport } from '@/shared/types/disaster';
 import { ShelterItem } from '@/shared/types';
 import { RouteDirections, fetchApi } from '@/lib/api';
+
+const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex flex-col items-center justify-center bg-[#E9EDF0] dark:bg-[#131D2A] text-gray-500 animate-pulse space-y-2">
+      <div className="w-8 h-8 rounded-full border-2 border-[#0F4C81] border-t-transparent animate-spin" />
+      <span className="text-xs font-bold">Loading OpenStreetMap Engine...</span>
+    </div>
+  ),
+});
 
 interface LiveSituationMapProps {
   latitude: number;
@@ -12,6 +22,9 @@ interface LiveSituationMapProps {
   locationName: string;
   shelters: ShelterItem[];
   reports: CommunityReport[];
+  isGpsActive?: boolean;
+  isFallback?: boolean;
+  onRefreshGPS?: () => void;
   onOpenSearch: () => void;
   onSelectShelter: (shelter: ShelterItem) => void;
   lang: 'en' | 'hi';
@@ -23,6 +36,9 @@ export const LiveSituationMap: React.FC<LiveSituationMapProps> = ({
   locationName,
   shelters,
   reports,
+  isGpsActive = false,
+  isFallback = false,
+  onRefreshGPS,
   onOpenSearch,
   onSelectShelter,
   lang,
@@ -50,7 +66,7 @@ export const LiveSituationMap: React.FC<LiveSituationMapProps> = ({
 
   return (
     <div className="w-full relative rounded-3xl overflow-hidden border border-[#CBD5E1] dark:border-[#24344B] shadow-sm bg-[#E9EDF0] dark:bg-[#131D2A] h-[380px] sm:h-[430px]">
-      <MapLibreMap
+      <LeafletMap
         latitude={latitude}
         longitude={longitude}
         userLat={latitude}
@@ -61,6 +77,9 @@ export const LiveSituationMap: React.FC<LiveSituationMapProps> = ({
         reports={reports}
         activeRoute={activeRoute}
         timeHorizon={timeHorizon}
+        isGpsActive={isGpsActive}
+        isFallback={isFallback}
+        onRefreshGPS={onRefreshGPS}
         onNavigateTo={handleNavigateTo}
         onOpenSearch={onOpenSearch}
         lang={lang}
@@ -70,3 +89,4 @@ export const LiveSituationMap: React.FC<LiveSituationMapProps> = ({
     </div>
   );
 };
+

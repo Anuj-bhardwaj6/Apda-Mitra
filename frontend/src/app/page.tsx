@@ -420,13 +420,16 @@ export default function Page() {
             />
           )}
 
-          {/* TAB 2: FULL GIS MAP (MapLibre GL JS Engine) */}
+          {/* TAB 2: FULL GIS MAP (Leaflet OpenStreetMap Engine) */}
           {activeTab === 'map' && (
             <div className="w-full h-[calc(100vh-140px)] sm:h-[700px] relative pb-20">
               <InteractiveMap
                 latitude={lat ?? FALLBACK_LAT}
                 longitude={lon ?? FALLBACK_LON}
                 locationName={locationName}
+                isGpsActive={isGpsActive}
+                isFallback={isFallback}
+                onRefreshGPS={requestCurrentLocation}
                 onLocationSelect={(newLat, newLon, name) => handleSelectLocation(name || 'Selected Location', newLat, newLon)}
                 onSearchOpen={() => setIsLocationSearchOpen(true)}
                 shelters={shelters}

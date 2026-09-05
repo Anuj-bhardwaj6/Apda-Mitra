@@ -220,6 +220,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               locationName={locationName}
               shelters={safePlaces}
               reports={communityReports}
+              isGpsActive={isGpsActive}
+              isFallback={isFallback}
+              onRefreshGPS={onRefreshGPS}
               onOpenSearch={() => setIsSearchOpen(true)}
               onSelectShelter={(sh) => {
                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${sh.latitude},${sh.longitude}`, '_blank');
