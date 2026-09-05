@@ -128,6 +128,12 @@ body {
   z-index: 10 !important;
 }
 
+/* Leaflet CircleMarker Google Maps User Location (Requirement 5) */
+.leaflet-user-location-marker {
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35)) drop-shadow(0 0 4px rgba(26, 115, 232, 0.5));
+  transition: all 0.2s ease-out;
+}
+
 /* Google Maps-Style Clean Pulsing Blue Location Dot */
 .gmaps-location-container {
   position: relative;

@@ -37,7 +37,7 @@ interface HomeScreenProps {
   isOffline: boolean;
   isGpsActive?: boolean;
   isFallback?: boolean;
-  locationStatus?: 'prompt' | 'detecting' | 'active' | 'denied' | 'unavailable' | 'unsupported' | 'manual';
+  locationStatus?: 'prompt' | 'detecting' | 'active' | 'denied' | 'unavailable' | 'unsupported' | 'manual' | 'timeout';
   permissionState?: 'prompt' | 'granted' | 'denied' | 'unknown';
   onSelectLocation: (name: string, lat: number, lon: number) => void;
   onRefreshGPS?: () => void;

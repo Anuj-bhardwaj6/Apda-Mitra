@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TopAppBar } from '@/features/home/TopAppBar';
 import { HomeScreen } from '@/features/home/HomeScreen';
 import { MobileNavigation } from '@/features/home/MobileNavigation';
@@ -52,7 +52,7 @@ export default function Page() {
   const [lon, setLon] = useState<number | null>(null);
   const [locationName, setLocationName] = useState<string>('Detecting Live Location...');
   const [locationStatus, setLocationStatus] = useState<
-    'prompt' | 'detecting' | 'active' | 'denied' | 'unavailable' | 'unsupported' | 'manual'
+    'prompt' | 'detecting' | 'active' | 'denied' | 'unavailable' | 'unsupported' | 'manual' | 'timeout'
   >('prompt');
   const [permissionState, setPermissionState] = useState<'prompt' | 'granted' | 'denied' | 'unknown'>('unknown');
   const [isGpsActive, setIsGpsActive] = useState<boolean>(false);
@@ -62,6 +62,9 @@ export default function Page() {
 
   // Time Horizon Forecast State (SIH Feature)
   const [timeHorizon, setTimeHorizon] = useState<'now' | '+3h' | '+6h' | '+12h' | 'tomorrow'>('now');
+
+  // WatchPosition Ref for real-time tracking and unmount cleanup (Requirement 4 & 14)
+  const watchIdRef = useRef<number | null>(null);
 
   // Modals & Sheets
   const [isJudgeHUDOpen, setIsJudgeHUDOpen] = useState(false);
@@ -74,7 +77,7 @@ export default function Page() {
   const [shelters, setShelters] = useState<ShelterResource[]>([]);
   const [eocMetrics, setEocMetrics] = useState<EOCMetrics | null>(null);
 
-  // Dark Mode HTML class syncing
+  // Sync dark mode class with root document
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -83,7 +86,7 @@ export default function Page() {
     }
   }, [isDarkMode]);
 
-  // Dynamic Browser GPS Geolocation with Multi-Stage Accuracy & Reverse Geocoding
+  // Dynamic Browser GPS Geolocation with High Accuracy, 10s Timeout, and WatchPosition (Requirements 1, 2, 3, 4, 8, 10, 11, 12, 13, 14)
   const requestCurrentLocation = useCallback(async () => {
     if (typeof window === 'undefined' || !('geolocation' in navigator)) {
       setLocationStatus('unsupported');
@@ -91,7 +94,7 @@ export default function Page() {
       setIsFallback(true);
       setLat(FALLBACK_LAT);
       setLon(FALLBACK_LON);
-      setLocationName(FALLBACK_NAME);
+      setLocationName('Location permission is required to show your position.');
       return;
     }
 
@@ -136,33 +139,57 @@ export default function Page() {
       setLon(FALLBACK_LON);
 
       if (error.code === error.PERMISSION_DENIED) {
+        // Requirement 11
         setLocationStatus('denied');
         setPermissionState('denied');
-        setLocationName(FALLBACK_NAME);
+        setLocationName('Location permission is required to show your position.');
+      } else if (error.code === error.TIMEOUT) {
+        // Requirement 12
+        setLocationStatus('timeout');
+        setLocationName('Unable to get your location. Please try again.');
       } else {
+        // Requirement 13
         setLocationStatus('unavailable');
-        setLocationName(FALLBACK_NAME);
+        setLocationName('Unable to get your location. Please try again.');
       }
     };
 
-    // First attempt high accuracy (satellites/GNSS); if that times out or fails (common on PC/laptops without GPS chip),
-    // immediately fall back to standard accuracy (Wi-Fi/IP geolocation)
+    // Requirement 1 & 2: navigator.geolocation.getCurrentPosition with timeout 10000, high accuracy
     navigator.geolocation.getCurrentPosition(
       handleSuccess,
-      (err) => {
-        if (err.code !== err.PERMISSION_DENIED) {
-          navigator.geolocation.getCurrentPosition(
-            handleSuccess,
-            handleFailure,
-            { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 }
-          );
-        } else {
-          handleFailure(err);
-        }
-      },
-      { timeout: 7000, enableHighAccuracy: true, maximumAge: 0 }
+      handleFailure,
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
     );
-  }, [FALLBACK_LAT, FALLBACK_LON, FALLBACK_NAME]);
+
+    // Requirement 4 & 14: Also use watchPosition for continuous movement updates
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+
+    try {
+      const watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          handleSuccess(pos);
+        },
+        (err) => {
+          console.warn('Geolocation watchPosition update notice:', err.message);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+      watchIdRef.current = watchId;
+    } catch (e) {
+      console.warn('Could not register watchPosition:', e);
+    }
+  }, [FALLBACK_LAT, FALLBACK_LON]);
 
   // Permission State Management and Initial GPS Request (Requirement 2 & 3)
   useEffect(() => {
@@ -200,10 +227,10 @@ export default function Page() {
               setLocationStatus('denied');
               setLat(FALLBACK_LAT);
               setLon(FALLBACK_LON);
-              setLocationName(FALLBACK_NAME);
+              setLocationName('Location permission is required to show your position.');
             } else if (updatedState === 'prompt') {
               setLocationStatus('prompt');
-              setLocationName('Location Permission Needed');
+              requestCurrentLocation();
             }
           };
 
@@ -216,13 +243,10 @@ export default function Page() {
             setLocationStatus('denied');
             setLat(FALLBACK_LAT);
             setLon(FALLBACK_LON);
-            setLocationName(FALLBACK_NAME);
+            setLocationName('Location permission is required to show your position.');
             return;
           } else if (currentPermState === 'prompt') {
             // Permission has not been granted or denied yet.
-            // Requirement 2: Do NOT automatically use the Wayanad fallback if GPS permission has not yet been requested.
-            setLocationStatus('prompt');
-            setLocationName('Location Permission Needed');
             // Request location to trigger browser permission dialog
             requestCurrentLocation();
             return;
@@ -240,8 +264,12 @@ export default function Page() {
 
     return () => {
       isMounted = false;
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
     };
-  }, [requestCurrentLocation, FALLBACK_LAT, FALLBACK_LON, FALLBACK_NAME]);
+  }, [requestCurrentLocation, FALLBACK_LAT, FALLBACK_LON]);
 
   // Fetch Live Shelters from Backend Overpass
   useEffect(() => {

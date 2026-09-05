@@ -11,7 +11,7 @@ interface LocationPillProps {
   longitude?: number;
   isGpsActive?: boolean;
   isFallback?: boolean;
-  status?: 'prompt' | 'detecting' | 'active' | 'denied' | 'unavailable' | 'unsupported' | 'manual';
+  status?: 'prompt' | 'detecting' | 'active' | 'denied' | 'unavailable' | 'unsupported' | 'manual' | 'timeout';
   permissionState?: 'prompt' | 'granted' | 'denied' | 'unknown';
   onOpenSearch: () => void;
   onRefreshGPS: () => void;
@@ -81,6 +81,8 @@ export const LocationPill: React.FC<LocationPillProps> = ({
                   <span>
                     {status === 'denied'
                       ? (lang === 'hi' ? 'जीपीएस अस्वीकृत (फ़ॉलबैक)' : 'GPS Denied (Fallback)')
+                      : status === 'timeout'
+                      ? (lang === 'hi' ? 'जीपीएस समय समाप्त (फ़ॉलबैक)' : 'GPS Timeout (Fallback)')
                       : (lang === 'hi' ? 'फ़ॉलबैक स्थान' : 'Fallback Location')}
                   </span>
                 </span>

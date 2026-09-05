@@ -94,19 +94,20 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
-  const userMarkerRef = useRef<L.Marker | null>(null);
+  const userMarkerRef = useRef<L.CircleMarker | null>(null);
   const accuracyCircleRef = useRef<L.Circle | null>(null);
   const placeMarkersLayerRef = useRef<L.LayerGroup | null>(null);
   const routeLayerRef = useRef<L.Polyline | null>(null);
+  const watchIdRef = useRef<number | null>(null);
 
-  // Smart centering & drag tracking refs (Requirement 4)
+  // Smart centering & drag tracking refs (Requirement 4 & 9)
   const hasInitialCenteredRef = useRef<boolean>(false);
   const isUserInteractingRef = useRef<boolean>(false);
 
   // UI state
   const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null);
   const [isLocating, setIsLocating] = useState<boolean>(false);
-  const [showPermissionDeniedBanner, setShowPermissionDeniedBanner] = useState<boolean>(false);
+  const [locationErrorMessage, setLocationErrorMessage] = useState<string | null>(null);
   const [activeLayers, setActiveLayers] = useState({
     shelters: true,
     hospitals: true,
@@ -117,25 +118,176 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   const effectiveLat = userLat ?? latitude;
   const effectiveLon = userLon ?? longitude;
 
-  // Sync permission denied state
+  // Sync error or permission denied state from parent props
   useEffect(() => {
     if (isFallback && !isGpsActive) {
-      setShowPermissionDeniedBanner(true);
+      if (locationName && (locationName.includes('permission') || locationName.includes('Unable') || locationName.includes('required'))) {
+        setLocationErrorMessage(locationName);
+      } else {
+        setLocationErrorMessage('Location permission is required to show your position.');
+      }
     } else if (isGpsActive) {
-      setShowPermissionDeniedBanner(false);
+      setLocationErrorMessage(null);
     }
-  }, [isFallback, isGpsActive]);
+  }, [isFallback, isGpsActive, locationName]);
 
-  // Initialize Leaflet Map
+  // Unified Location Acquisition & Recenter Function (Requirements 1, 2, 3, 8, 9, 10, 11, 12, 13)
+  const locateUser = useCallback(
+    (shouldRecenter: boolean = true) => {
+      if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+        setLocationErrorMessage('Geolocation is not supported by your browser.');
+        setIsLocating(false);
+        return;
+      }
+
+      setIsLocating(true);
+      isUserInteractingRef.current = false;
+
+      // Requirement 1 & 2: navigator.geolocation.getCurrentPosition with timeout 10000, high accuracy
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const freshLat = pos.coords.latitude;
+          const freshLon = pos.coords.longitude;
+          const freshAcc = pos.coords.accuracy;
+
+          setLocationErrorMessage(null);
+          setIsLocating(false);
+
+          const map = mapInstanceRef.current;
+          if (map) {
+            // Requirement 5 & 7: Add/update circleMarker on THIS active map instance
+            if (userMarkerRef.current && map.hasLayer(userMarkerRef.current)) {
+              userMarkerRef.current.setLatLng([freshLat, freshLon]);
+              userMarkerRef.current.setStyle({
+                fillColor: '#1A73E8',
+                color: '#FFFFFF',
+              });
+            } else {
+              if (userMarkerRef.current) {
+                try {
+                  userMarkerRef.current.remove();
+                } catch (_) {}
+              }
+              const marker = L.circleMarker([freshLat, freshLon], {
+                radius: 8,
+                fillColor: '#1A73E8',
+                fillOpacity: 1.0,
+                color: '#FFFFFF',
+                weight: 2.5,
+                opacity: 1.0,
+                pane: 'userLocationPane',
+                className: 'leaflet-user-location-marker',
+                interactive: true,
+              }).addTo(map);
+              userMarkerRef.current = marker;
+            }
+
+            // Requirement 6 & 7: Add/update Leaflet circle with GPS accuracy
+            const accRadius = Math.max(freshAcc || 25, 10);
+            if (accuracyCircleRef.current && map.hasLayer(accuracyCircleRef.current)) {
+              accuracyCircleRef.current.setLatLng([freshLat, freshLon]);
+              accuracyCircleRef.current.setRadius(accRadius);
+              accuracyCircleRef.current.setStyle({
+                color: '#1A73E8',
+                fillColor: '#4285F4',
+              });
+            } else {
+              if (accuracyCircleRef.current) {
+                try {
+                  accuracyCircleRef.current.remove();
+                } catch (_) {}
+              }
+              const circle = L.circle([freshLat, freshLon], {
+                radius: accRadius,
+                color: '#1A73E8',
+                fillColor: '#4285F4',
+                fillOpacity: 0.15,
+                weight: 1.5,
+                opacity: 0.45,
+                interactive: false,
+                pane: 'accuracyPane',
+              }).addTo(map);
+              accuracyCircleRef.current = circle;
+            }
+
+            // Requirement 9: Recenter to user's real coordinates
+            if (shouldRecenter || !hasInitialCenteredRef.current) {
+              map.flyTo([freshLat, freshLon], 16.5, {
+                animate: true,
+                duration: 1.2,
+                easeLinearity: 0.25,
+              });
+              hasInitialCenteredRef.current = true;
+            }
+          }
+
+          if (onRefreshGPS) {
+            onRefreshGPS();
+          }
+        },
+        (err) => {
+          setIsLocating(false);
+          let errorMsg = 'Unable to get your location. Please try again.';
+
+          if (err.code === err.PERMISSION_DENIED) {
+            // Requirement 11
+            errorMsg = 'Location permission is required to show your position.';
+          } else if (err.code === err.TIMEOUT) {
+            // Requirement 12
+            errorMsg = 'Unable to get your location. Please try again.';
+          } else {
+            // Requirement 13
+            errorMsg = 'Unable to get your location. Please try again.';
+          }
+
+          setLocationErrorMessage(errorMsg);
+
+          if (shouldRecenter) {
+            const map = mapInstanceRef.current;
+            if (map) {
+              map.flyTo([effectiveLat, effectiveLon], 16, {
+                animate: true,
+                duration: 1.0,
+              });
+            }
+          }
+
+          if (onRefreshGPS) {
+            onRefreshGPS();
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    },
+    [effectiveLat, effectiveLon, onRefreshGPS]
+  );
+
+  // Initialize Leaflet Map with React Strict Mode safety & custom z-index panes (Requirements 5, 6, 7, 14, 15)
   useEffect(() => {
     if (!mapContainerRef.current) return;
+
+    // React Strict Mode safety: clean up any stale leaflet instance attached to this container element
+    if ((mapContainerRef.current as any)._leaflet_id) {
+      if (mapInstanceRef.current) {
+        try {
+          mapInstanceRef.current.remove();
+        } catch (_) {}
+        mapInstanceRef.current = null;
+      }
+      (mapContainerRef.current as any)._leaflet_id = undefined;
+    }
+
     if (mapInstanceRef.current) return;
 
     // Create Map with OpenStreetMap live tiles (Zero API key required)
     const map = L.map(mapContainerRef.current, {
       center: [effectiveLat, effectiveLon],
       zoom: isCompact ? 13 : 15,
-      zoomControl: false, // We use custom styled Google Maps style zoom controls
+      zoomControl: false,
       attributionControl: true,
     });
 
@@ -147,6 +299,16 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
     // Add Leaflet zoom control at bottom-right
     L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // Requirement 5 & 6: Create custom panes for high z-index layering above tiles
+    if (!map.getPane('userLocationPane')) {
+      const userPane = map.createPane('userLocationPane');
+      userPane.style.zIndex = '650'; // standard markerPane is 600, overlayPane is 400, tilePane is 200
+    }
+    if (!map.getPane('accuracyPane')) {
+      const accPane = map.createPane('accuracyPane');
+      accPane.style.zIndex = '450';
+    }
 
     // Track user drag/pan: do not snap back automatically if user manually moves map (Requirement 4)
     map.on('dragstart movestart', () => {
@@ -164,150 +326,173 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       map.invalidateSize();
     }, 200);
 
+    // Setup watchPosition for dynamic position tracking (Requirements 4 & 14)
+    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+      try {
+        const watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            const wLat = pos.coords.latitude;
+            const wLon = pos.coords.longitude;
+            const wAcc = pos.coords.accuracy;
+
+            const activeMap = mapInstanceRef.current;
+            if (activeMap) {
+              if (userMarkerRef.current && activeMap.hasLayer(userMarkerRef.current)) {
+                userMarkerRef.current.setLatLng([wLat, wLon]);
+              }
+              if (accuracyCircleRef.current && activeMap.hasLayer(accuracyCircleRef.current)) {
+                accuracyCircleRef.current.setLatLng([wLat, wLon]);
+                accuracyCircleRef.current.setRadius(Math.max(wAcc || 25, 10));
+              }
+            }
+          },
+          (err) => {
+            console.warn('Map watchPosition update notice:', err.message);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          }
+        );
+        watchIdRef.current = watchId;
+      } catch (e) {
+        console.warn('Could not register watchPosition in map:', e);
+      }
+    }
+
+    // Strict Mode / unmount cleanup (Requirements 14 & 15)
     return () => {
-      map.remove();
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      if (userMarkerRef.current) {
+        try {
+          userMarkerRef.current.remove();
+        } catch (_) {}
+        userMarkerRef.current = null;
+      }
+      if (accuracyCircleRef.current) {
+        try {
+          accuracyCircleRef.current.remove();
+        } catch (_) {}
+        accuracyCircleRef.current = null;
+      }
+      if (placeMarkersLayerRef.current) {
+        try {
+          placeMarkersLayerRef.current.remove();
+        } catch (_) {}
+        placeMarkersLayerRef.current = null;
+      }
+      if (routeLayerRef.current) {
+        try {
+          routeLayerRef.current.remove();
+        } catch (_) {}
+        routeLayerRef.current = null;
+      }
+      try {
+        map.remove();
+      } catch (_) {}
       mapInstanceRef.current = null;
+      hasInitialCenteredRef.current = false;
     };
   }, []);
 
-  // Update Blue Current Location Dot & Accuracy Circle (Requirements 1 & 4)
+  // Update Blue Current Location CircleMarker & Accuracy Circle (Requirements 5, 6, 7, 8)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Centering behavior (Requirement 4):
-    // Center map on user location on initial load.
-    // Do NOT continuously force center if user manually moved the map!
-    if (!hasInitialCenteredRef.current) {
-      map.setView([effectiveLat, effectiveLon], isCompact ? 14 : 15);
+    // Centering behavior: center map on user location on initial load if not manually exploring
+    if (!hasInitialCenteredRef.current && !isUserInteractingRef.current) {
+      map.setView([effectiveLat, effectiveLon], isCompact ? 14 : 16);
       hasInitialCenteredRef.current = true;
     }
 
-    // Google Maps-style location dot styling:
-    // Solid blue center, crisp white border, multi-layer drop shadow, pulsing sonar halo
-    const dotClass = isFallback ? 'gmaps-fallback-dot' : '';
-    const ringClass = isFallback ? 'gmaps-fallback-ring' : '';
+    const markerColor = isFallback ? '#D97706' : '#1A73E8';
+    const accuracyColor = isFallback ? '#D97706' : '#1A73E8';
+    const accuracyFill = isFallback ? '#F59E0B' : '#4285F4';
 
-    const userIcon = L.divIcon({
-      className: 'gmaps-location-icon-wrapper',
-      html: `
-        <div class="gmaps-location-container">
-          <div class="gmaps-pulse-ring ${ringClass}"></div>
-          <div class="gmaps-solid-dot ${dotClass}"></div>
-        </div>
-      `,
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-    });
-
-    // 1. Current Location Marker
-    if (userMarkerRef.current) {
+    // 1. Current Location CircleMarker (Requirements 5, 7, 8)
+    // Blue filled center, white border, ~8px radius, high z-index pane (650) above map tiles
+    if (userMarkerRef.current && map.hasLayer(userMarkerRef.current)) {
       userMarkerRef.current.setLatLng([effectiveLat, effectiveLon]);
-      userMarkerRef.current.setIcon(userIcon);
+      userMarkerRef.current.setStyle({
+        fillColor: markerColor,
+        color: '#FFFFFF',
+      });
     } else {
-      const userMarker = L.marker([effectiveLat, effectiveLon], {
-        icon: userIcon,
-        zIndexOffset: 1200,
+      if (userMarkerRef.current) {
+        try {
+          userMarkerRef.current.remove();
+        } catch (_) {}
+      }
+
+      const circleMarker = L.circleMarker([effectiveLat, effectiveLon], {
+        radius: 8,
+        fillColor: markerColor,
+        fillOpacity: 1.0,
+        color: '#FFFFFF',
+        weight: 2.5,
+        opacity: 1.0,
+        pane: 'userLocationPane',
+        className: 'leaflet-user-location-marker',
+        interactive: true,
       }).addTo(map);
 
-      userMarker.on('click', () => {
+      circleMarker.on('click', () => {
         setSelectedPlace({
           id: 'user-loc',
           type: 'user',
-          title: lang === 'hi' ? 'आपकी लाइव जीपीएस स्थिति' : 'Your Current Location',
+          title: lang === 'hi' ? 'आपकी लाइव स्थिति' : 'Current Location',
           subtitle: locationName,
-          description: `Coordinates: ${effectiveLat.toFixed(4)}°N, ${effectiveLon.toFixed(4)}°E • Accuracy: ±${Math.round(accuracyMeters || 35)}m • Status: ${isGpsActive ? 'Live GPS Active' : 'Fallback Zone'}`,
+          description: `Coordinates: ${effectiveLat.toFixed(4)}°N, ${effectiveLon.toFixed(4)}°E • Accuracy: ±${Math.round(accuracyMeters || 25)}m • Status: ${isGpsActive ? 'Live GPS Active' : 'Fallback Area'}`,
           latitude: effectiveLat,
           longitude: effectiveLon,
           source: isGpsActive ? 'Browser Geolocation (GPS)' : 'Fallback Safe Zone',
         });
       });
 
-      userMarkerRef.current = userMarker;
+      userMarkerRef.current = circleMarker;
     }
 
-    // 2. Soft/light blue Accuracy Circle (Requirements 1 & 4)
-    // Radius dynamically bound to Geolocation accuracy (meters), clamped to sensible range [25m, 250m]
-    const accuracyRadius = Math.max(25, Math.min(accuracyMeters || 50, 250));
-    const circleColor = isFallback ? '#D97706' : '#1A73E8';
-    const circleFill = isFallback ? '#F59E0B' : '#4285F4';
+    // 2. Accuracy Circle using real GPS accuracy value (Requirements 6, 7, 8)
+    const accuracyRadius = Math.max(accuracyMeters || 25, 10);
 
-    if (accuracyCircleRef.current) {
+    if (accuracyCircleRef.current && map.hasLayer(accuracyCircleRef.current)) {
       accuracyCircleRef.current.setLatLng([effectiveLat, effectiveLon]);
       accuracyCircleRef.current.setRadius(accuracyRadius);
       accuracyCircleRef.current.setStyle({
-        color: circleColor,
-        fillColor: circleFill,
+        color: accuracyColor,
+        fillColor: accuracyFill,
       });
     } else {
+      if (accuracyCircleRef.current) {
+        try {
+          accuracyCircleRef.current.remove();
+        } catch (_) {}
+      }
+
       const circle = L.circle([effectiveLat, effectiveLon], {
         radius: accuracyRadius,
-        color: circleColor,
-        fillColor: circleFill,
-        fillOpacity: 0.12,
+        color: accuracyColor,
+        fillColor: accuracyFill,
+        fillOpacity: 0.15,
         weight: 1.5,
+        opacity: 0.45,
+        interactive: false,
+        pane: 'accuracyPane',
       }).addTo(map);
+
       accuracyCircleRef.current = circle;
     }
   }, [effectiveLat, effectiveLon, locationName, isGpsActive, isFallback, accuracyMeters, isCompact, lang]);
 
-  // Handle "My Location" Button Click (Requirements 7, 8, 9, 10, 11)
+  // Handle "My Location" Button Click: Calls the same location function (Requirement 9)
   const handleLocateMe = useCallback(() => {
-    setIsLocating(true);
-    const map = mapInstanceRef.current;
-
-    // Reset user moving flag on explicit locate request
-    isUserInteractingRef.current = false;
-
-    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const freshLat = pos.coords.latitude;
-          const freshLon = pos.coords.longitude;
-          setShowPermissionDeniedBanner(false);
-          if (onRefreshGPS) {
-            onRefreshGPS();
-          }
-          if (map) {
-            map.flyTo([freshLat, freshLon], 16.5, {
-              animate: true,
-              duration: 1.2,
-              easeLinearity: 0.25,
-            });
-          }
-          setIsLocating(false);
-        },
-        (err) => {
-          console.warn('My Location GPS query notice:', err.message);
-          if (err.code === err.PERMISSION_DENIED) {
-            setShowPermissionDeniedBanner(true);
-          }
-          if (onRefreshGPS) {
-            onRefreshGPS();
-          }
-          if (map) {
-            map.flyTo([effectiveLat, effectiveLon], 16, {
-              animate: true,
-              duration: 1.0,
-            });
-          }
-          setIsLocating(false);
-        },
-        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-      );
-    } else {
-      if (onRefreshGPS) {
-        onRefreshGPS();
-      }
-      if (map) {
-        map.flyTo([effectiveLat, effectiveLon], 16, {
-          animate: true,
-          duration: 1.0,
-        });
-      }
-      setTimeout(() => setIsLocating(false), 800);
-    }
-  }, [effectiveLat, effectiveLon, onRefreshGPS]);
+    locateUser(true);
+  }, [locateUser]);
 
   // Render & Update Shelters, Hospitals, and Hazard Markers (Requirement 3)
   useEffect(() => {
@@ -550,11 +735,13 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           onClick={onOpenSearch}
           className="bg-white/95 dark:bg-[#131D2A]/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-[#CBD5E1] dark:border-[#24344B] shadow-md flex items-center space-x-2 text-xs font-bold text-[#1F2937] dark:text-white hover:scale-102 active:scale-98 transition-all cursor-pointer"
         >
-          <span className={`w-2 h-2 rounded-full ${isGpsActive ? 'bg-[#10B981] animate-pulse' : 'bg-amber-500'}`} />
-          <span className="truncate max-w-[150px] sm:max-w-[220px]">{locationName}</span>
+          <span className={`w-2 h-2 rounded-full ${isLocating ? 'bg-[#1A73E8] animate-ping' : isGpsActive ? 'bg-[#10B981] animate-pulse' : 'bg-amber-500'}`} />
+          <span className="truncate max-w-[150px] sm:max-w-[220px]">
+            {isLocating ? (lang === 'hi' ? 'जीपीएस खोज रहा है...' : 'Acquiring Live GPS...') : locationErrorMessage || locationName}
+          </span>
         </button>
 
-        {isGpsActive && (
+        {isGpsActive && !isLocating && (
           <span className="bg-[#E8F5E9] dark:bg-[#1A3320] text-[#2E7D32] dark:text-[#81C784] border border-[#A5D6A7] text-[10px] font-bold px-2 py-1 rounded-xl shadow-xs flex items-center space-x-1">
             <span className="w-1.5 h-1.5 rounded-full bg-[#2E7D32] animate-ping" />
             <span>GPS Active</span>
@@ -562,7 +749,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         )}
       </div>
 
-      {/* 3. Top-Right: Google Maps-Style "My Location" Button (Requirements 7 & 8) */}
+      {/* 3. Top-Right: Google Maps-Style "My Location" Button (Requirements 7, 8, 9) */}
       <div className="absolute top-3 right-3 z-[400] flex items-center space-x-2">
         <button
           onClick={handleLocateMe}
@@ -603,19 +790,17 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         </button>
       </div>
 
-      {/* User-Friendly Permission Denied Banner (Requirement 10) */}
-      {showPermissionDeniedBanner && (
+      {/* User-Friendly Location Error / Permission Banner (Requirements 3, 10, 11, 12, 13) */}
+      {locationErrorMessage && (
         <div className="absolute top-16 left-3 right-3 z-[400] max-w-sm mx-auto bg-white/95 dark:bg-[#1A2634]/95 backdrop-blur-md border border-amber-400 dark:border-amber-600 rounded-2xl p-2.5 shadow-xl flex items-center justify-between space-x-2 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center space-x-2 text-xs text-amber-900 dark:text-amber-200">
             <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
             <span className="font-semibold text-[11px] leading-tight">
-              {lang === 'hi'
-                ? 'आपकी स्थिति दिखाने के लिए स्थान अनुमति आवश्यक है।'
-                : 'Location permission is required to show your position.'}
+              {locationErrorMessage}
             </span>
           </div>
           <button
-            onClick={() => setShowPermissionDeniedBanner(false)}
+            onClick={() => setLocationErrorMessage(null)}
             className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer shrink-0"
             aria-label="Dismiss message"
           >
