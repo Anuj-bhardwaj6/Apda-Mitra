@@ -1067,6 +1067,26 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     });
   }, [activeGisLayers, effectiveLat, effectiveLon]);
 
+  // Recalculate map size with map.invalidateSize() when GIS panel toggles or container resizes
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [isGisPanelOpen]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className={`relative w-full h-full rounded-3xl overflow-hidden ${className}`}>
       {/* 1. Leaflet Map DOM Element */}

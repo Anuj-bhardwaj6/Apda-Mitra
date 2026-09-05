@@ -42,9 +42,9 @@ const CATEGORY_ICONS: Record<GisLayerCategory, React.ReactNode> = {
 };
 
 const CATEGORY_NAMES: Record<GisLayerCategory, { en: string; hi: string }> = {
-  disaster: { en: 'Disaster Risk', hi: 'आपदा एवं जोखिम' },
-  infrastructure: { en: 'Infrastructure', hi: 'बुनियादी ढांचा' },
-  geographic: { en: 'Geographic', hi: 'भौगोलिक विशेषताएं' },
+  disaster: { en: 'Disaster Risk', hi: 'आपदा जोखिम' },
+  infrastructure: { en: 'Infrastructure Layers', hi: 'बुनियादी ढांचा' },
+  geographic: { en: 'Geographic Features', hi: 'भौगोलिक विशेषताएं' },
 };
 
 const LAYER_ICONS: Record<string, React.ReactNode> = {
@@ -73,7 +73,7 @@ export const GisLayersPanel: React.FC<GisLayersPanelProps> = ({
 }) => {
   // Mobile accordion state: default disaster expanded, others collapsed for compact viewing
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({
-    infrastructure: true,
+    infrastructure: false,
     geographic: true,
   });
   const [showLegend, setShowLegend] = useState<boolean>(false);
@@ -103,25 +103,28 @@ export const GisLayersPanel: React.FC<GisLayersPanelProps> = ({
       onTouchStart={(e) => e.stopPropagation()}
       onWheel={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
-      className="absolute bottom-2.5 left-2.5 right-2.5 sm:bottom-auto sm:top-14 sm:right-3 sm:left-auto sm:w-[350px] z-[450] max-h-[min(calc(100%-140px),calc(100dvh-180px))] flex flex-col bg-white/95 dark:bg-[#131D2A]/95 backdrop-blur-xl border border-gray-200/90 dark:border-gray-700/80 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-3 sm:slide-in-from-top-2 duration-200"
+      className="absolute top-14 left-2 right-2 w-[calc(100%-16px)] sm:left-auto sm:right-3 sm:w-[360px] sm:max-w-[calc(100%-24px)] z-[500] max-h-[calc(100%-70px)] flex flex-col bg-white/95 dark:bg-[#131D2A]/95 backdrop-blur-xl border border-gray-200/90 dark:border-gray-700/80 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden box-border animate-in fade-in slide-in-from-top-2 duration-200"
+      style={{
+        boxSizing: 'border-box',
+      }}
     >
       {/* 1. Sticky Header with Clear Controls */}
-      <div className="sticky top-0 z-20 px-3 py-2.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between shrink-0 bg-white/95 dark:bg-[#131D2A]/95 backdrop-blur-md">
-        <div className="flex items-center space-x-2">
+      <div className="sticky top-0 z-20 px-3.5 py-2.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between shrink-0 bg-white/95 dark:bg-[#131D2A]/95 backdrop-blur-md">
+        <div className="flex items-center space-x-2 min-w-0">
           <div className="w-7 h-7 rounded-lg bg-blue-600/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
             <Layers className="w-3.5 h-3.5" />
           </div>
-          <div className="flex items-center space-x-1.5">
-            <h3 className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white leading-none">
+          <div className="flex items-center space-x-1.5 min-w-0">
+            <h3 className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white leading-none truncate">
               {lang === 'hi' ? 'जीआईएस मैप लेयर्स' : 'GIS Map Layers'}
             </h3>
-            <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
-              {activeCount}
+            <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 shrink-0">
+              {activeCount} {lang === 'hi' ? 'सक्रिय' : 'active'}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1 shrink-0">
           <button
             onClick={onResetDefaults}
             className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
@@ -141,29 +144,35 @@ export const GisLayersPanel: React.FC<GisLayersPanelProps> = ({
       </div>
 
       {/* 2. Scrollable Layer List (Independent Inner Scroll) */}
-      <div className="flex-1 overflow-y-auto px-3 py-2.5 space-y-2.5 text-xs overscroll-contain no-scrollbar">
-        {/* Base Maps: Compact 3-Column Grid */}
+      <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3 text-xs overscroll-contain no-scrollbar">
+        {/* Base Cartography Section */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold tracking-wider uppercase text-gray-400 dark:text-gray-500">
-              {lang === 'hi' ? 'बेस मैप' : 'Base Cartography'}
+            <span className="text-[11px] font-extrabold tracking-wider uppercase text-gray-500 dark:text-gray-400">
+              {lang === 'hi' ? 'बेस मानचित्र' : 'Base Cartography'}
             </span>
             <span className="text-[9px] text-gray-400 font-medium">
               {lang === 'hi' ? 'एक चुनें' : 'Select 1'}
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-3 gap-2">
             {(Object.values(BASE_MAPS) as any[]).map((base) => {
               const isSelected = activeBaseMap === base.id;
+              const displayName = base.id === 'osm'
+                ? 'OpenStreetMap'
+                : base.id === 'satellite'
+                ? 'Satellite'
+                : 'Terrain';
+
               return (
                 <button
                   key={base.id}
                   onClick={() => onSelectBaseMap(base.id as BaseMapId)}
-                  className={`py-1.5 px-1 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-0.5 relative min-h-[48px] ${
+                  className={`py-2 px-1.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-1 relative min-h-[50px] ${
                     isSelected
                       ? 'border-blue-600 dark:border-blue-500 bg-blue-50/80 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold shadow-xs'
-                      : 'border-gray-200 dark:border-gray-700/70 hover:border-gray-300 dark:hover:border-gray-600 bg-white/70 dark:bg-[#182333]/70 text-gray-700 dark:text-gray-300 font-medium'
+                      : 'border-gray-200 dark:border-gray-700/80 hover:border-gray-300 dark:hover:border-gray-600 bg-white/70 dark:bg-[#182333]/70 text-gray-700 dark:text-gray-300 font-medium'
                   }`}
                 >
                   {isSelected && (
@@ -177,8 +186,8 @@ export const GisLayersPanel: React.FC<GisLayersPanelProps> = ({
                   >
                     <Layers className="w-2.5 h-2.5" />
                   </div>
-                  <span className="text-[10px] leading-tight truncate w-full px-1">
-                    {lang === 'hi' ? base.nameHi : base.name.replace(' (ESRI)', '').replace(' / Topo', '')}
+                  <span className="text-[10px] font-bold leading-tight truncate w-full px-0.5">
+                    {lang === 'hi' ? base.nameHi : displayName}
                   </span>
                 </button>
               );
@@ -186,7 +195,7 @@ export const GisLayersPanel: React.FC<GisLayersPanelProps> = ({
           </div>
         </div>
 
-        {/* Categories: Accordions with ~60px High Layer Cards */}
+        {/* Categories: Accordions with ~58px High Layer Cards */}
         {(['disaster', 'infrastructure', 'geographic'] as GisLayerCategory[]).map((catKey) => {
           const layers = categorizedLayers[catKey];
           const isCollapsed = collapsedCategories[catKey] || false;
@@ -218,7 +227,7 @@ export const GisLayersPanel: React.FC<GisLayersPanelProps> = ({
                       <div
                         key={layer.id}
                         onClick={() => onToggleGisLayer(layer.id)}
-                        className={`min-h-[58px] p-2 rounded-lg transition-all cursor-pointer flex items-center justify-between space-x-2 select-none active:scale-98 ${
+                        className={`min-h-[56px] p-2 rounded-lg transition-all cursor-pointer flex items-center justify-between space-x-2 select-none active:scale-98 ${
                           isActive
                             ? 'bg-blue-50/50 dark:bg-blue-950/25'
                             : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
