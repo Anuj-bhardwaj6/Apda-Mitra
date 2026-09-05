@@ -44,6 +44,7 @@ interface HomeScreenProps {
   onOpenSOS: () => void;
   accuracyMeters?: number;
   lang: 'en' | 'hi';
+  onOpenSearch?: () => void;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
@@ -61,6 +62,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenSOS,
   accuracyMeters,
   lang,
+  onOpenSearch,
 }) => {
   // Staged loading UX pipeline: runs once on mount without destroying/recreating DOM elements
   const [loadStage, setLoadStage] = useState<number>(3);
@@ -227,7 +229,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             isFallback={isFallback}
             accuracyMeters={accuracyMeters}
             onRefreshGPS={onRefreshGPS}
-            onOpenSearch={() => setIsSearchOpen(true)}
+            onOpenSearch={onOpenSearch ? onOpenSearch : () => setIsSearchOpen(true)}
             onSelectShelter={(sh) => {
               window.open(`https://www.google.com/maps/dir/?api=1&destination=${sh.latitude},${sh.longitude}`, '_blank');
             }}
@@ -293,6 +295,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onSelectLocation={onSelectLocation}
+        onUseCurrentGPS={onRefreshGPS}
         lang={lang}
       />
 

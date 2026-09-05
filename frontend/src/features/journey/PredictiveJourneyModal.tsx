@@ -34,7 +34,7 @@ export const PredictiveJourneyModal: React.FC<PredictiveJourneyModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div className="app-modal-overlay fixed inset-0 z-[1000] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" style={{ zIndex: 1000 }}>
       <div className="bg-white dark:bg-[#131D2A] border border-[#CBD5E1] dark:border-[#24344B] w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 relative animate-in fade-in zoom-in-95 text-[#1F2937] dark:text-white max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}

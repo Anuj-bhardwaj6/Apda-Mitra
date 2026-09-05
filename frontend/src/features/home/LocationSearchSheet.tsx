@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, MapPin, X, Navigation, RefreshCw, AlertTriangle } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 
@@ -42,6 +43,31 @@ export const LocationSearchSheet: React.FC<LocationSearchSheetProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<SearchResultItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll & listen for Escape key to close modal cleanly
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   const defaultPreservePlaces: SearchResultItem[] = [
     { name: 'Shimla, Himachal Pradesh', sub: 'Himalayan Ridge • High Slope Risk', lat: 31.1048, lon: 77.1734 },
@@ -97,9 +123,28 @@ export const LocationSearchSheet: React.FC<LocationSearchSheetProps> = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white dark:bg-[#131D2A] border border-[#CBD5E1] dark:border-[#24344B] w-full max-w-lg rounded-t-[32px] sm:rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 animate-in slide-in-from-bottom sm:zoom-in-95 text-[#1F2937] dark:text-white max-h-[85vh] overflow-y-auto">
+  const modalContent = (
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="app-modal-overlay fixed inset-0 w-screen h-screen z-[1000] bg-black/65 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 pointer-events-auto"
+      style={{
+        zIndex: 1000,
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={lang === 'hi' ? 'स्थान खोजें' : 'Search Location'}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-[#131D2A] border border-[#CBD5E1] dark:border-[#24344B] w-full max-w-lg rounded-t-[32px] sm:rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 animate-in slide-in-from-bottom sm:zoom-in-95 text-[#1F2937] dark:text-white max-h-[85vh] overflow-y-auto relative z-[1010]"
+        style={{
+          zIndex: 1010,
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -113,6 +158,7 @@ export const LocationSearchSheet: React.FC<LocationSearchSheetProps> = ({
           <button
             onClick={onClose}
             className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-full cursor-pointer"
+            aria-label="Close search"
           >
             <X className="w-5 h-5" />
           </button>
@@ -200,4 +246,10 @@ export const LocationSearchSheet: React.FC<LocationSearchSheetProps> = ({
       </div>
     </div>
   );
+
+  if (mounted && typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+
+  return modalContent;
 };

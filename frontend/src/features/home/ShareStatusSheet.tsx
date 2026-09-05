@@ -43,7 +43,7 @@ export const ShareStatusSheet: React.FC<ShareStatusSheetProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="app-modal-overlay fixed inset-0 z-[1000] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ zIndex: 1000 }}>
       <div className="bg-white dark:bg-[#131D2A] border border-[#CBD5E1] dark:border-[#24344B] w-full max-w-md rounded-t-[32px] sm:rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 animate-in slide-in-from-bottom sm:zoom-in-95 text-[#1F2937] dark:text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">

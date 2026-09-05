@@ -1090,7 +1090,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   }, []);
 
   return (
-    <div className={`relative w-full h-full rounded-3xl overflow-hidden ${className}`}>
+    <div className={`relative w-full h-full rounded-3xl overflow-hidden map-stacking-context isolate z-10 ${className}`}>
       {/* 1. Leaflet Map DOM Element */}
       <div ref={mapContainerRef} className="w-full h-full" />
 

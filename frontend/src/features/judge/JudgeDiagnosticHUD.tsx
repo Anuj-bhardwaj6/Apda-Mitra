@@ -24,7 +24,7 @@ export const JudgeDiagnosticHUD: React.FC<JudgeDiagnosticHUDProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div className="app-modal-overlay fixed inset-0 z-[1000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4" style={{ zIndex: 1000 }}>
       <div className="bg-[#0B111A] border border-[#24344B] w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 text-white relative animate-in fade-in zoom-in-95 font-mono">
         {/* Top Header */}
         <div className="flex items-center justify-between pb-2 border-b border-gray-800">

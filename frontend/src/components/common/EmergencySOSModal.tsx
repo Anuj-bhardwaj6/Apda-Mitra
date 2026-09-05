@@ -52,7 +52,7 @@ export const EmergencySOSModal: React.FC<EmergencySOSProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+    <div className="app-modal-overlay fixed inset-0 z-[1000] bg-black/75 backdrop-blur-xs flex items-center justify-center p-4" style={{ zIndex: 1000 }}>
       <div className="bg-white border-2 border-[#EF9A9A] w-full max-w-md rounded-3xl shadow-2xl overflow-hidden p-6 text-center relative space-y-4 animate-in fade-in zoom-in-95">
         <button
           onClick={onClose}

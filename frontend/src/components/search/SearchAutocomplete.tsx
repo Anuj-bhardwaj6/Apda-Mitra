@@ -112,7 +112,7 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-start justify-center p-3 sm:p-6 pt-12 sm:pt-16">
+    <div className="app-modal-overlay fixed inset-0 z-[1000] bg-black/50 backdrop-blur-xs flex items-start justify-center p-3 sm:p-6 pt-12 sm:pt-16" style={{ zIndex: 1000 }}>
       <div className="bg-white border border-[#CBD5E1] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col max-h-[85vh]">
         {/* Google Maps Search Bar Header */}
         <div className="p-3 sm:p-4 border-b border-[#E5E7EB] bg-white sticky top-0 z-10 space-y-2">

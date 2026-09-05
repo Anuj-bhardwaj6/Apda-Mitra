@@ -107,7 +107,7 @@ export const SafetyScoreHero: React.FC<SafetyScoreHeroProps> = ({
 
       {/* Explainable AI Modal ("Why am I seeing this?") */}
       {showXAIModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="app-modal-overlay fixed inset-0 z-[1000] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" style={{ zIndex: 1000 }}>
           <div className="bg-white dark:bg-[#131D2A] border border-[#CBD5E1] dark:border-[#24344B] w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4 relative animate-in fade-in zoom-in-95 text-[#1F2937] dark:text-white">
             <button
               onClick={() => setShowXAIModal(false)}

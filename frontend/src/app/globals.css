@@ -35,6 +35,17 @@
   --shadow-elevation-1: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
   --shadow-elevation-2: 0 4px 14px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
   --shadow-elevation-3: 0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.06);
+
+  /* Application Stacking Hierarchy Tokens */
+  --z-page-content: 0;
+  --z-map-container: 10;
+  --z-map-controls: 20;
+  --z-map-panel: 30;
+  --z-top-app-bar: 35;
+  --z-bottom-nav: 40;
+  --z-floating-sos: 45;
+  --z-modal-backdrop: 1000;
+  --z-modal-content: 1010;
 }
 
 .dark {
@@ -78,6 +89,24 @@ body {
   height: 100%;
   font-family: inherit;
   z-index: 1;
+}
+
+/* Stacking Context Isolation for Map Containers */
+.map-stacking-context {
+  isolation: isolate;
+  position: relative;
+  z-index: 10;
+}
+
+/* Top-level modal backdrop helper to guarantee full-viewport coverage */
+.app-modal-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 1000;
+  pointer-events: auto;
 }
 
 .leaflet-top,

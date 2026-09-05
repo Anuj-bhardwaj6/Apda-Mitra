@@ -38,7 +38,7 @@ export const AIPhotoReportModal: React.FC<AIPhotoReportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div className="app-modal-overlay fixed inset-0 z-[1000] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" style={{ zIndex: 1000 }}>
       <div className="bg-white dark:bg-[#131D2A] border border-[#CBD5E1] dark:border-[#24344B] w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 text-[#1F2937] dark:text-white relative animate-in fade-in zoom-in-95">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
           <X className="w-5 h-5" />

@@ -25,7 +25,7 @@ export const LoginScreen: React.FC<LoginProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div className="app-modal-overlay fixed inset-0 z-[1000] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" style={{ zIndex: 1000 }}>
       <div className="bg-white border border-[#CBD5E1] w-full max-w-md rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-7 space-y-4 relative animate-in fade-in zoom-in-95">
         <button
           onClick={onClose}

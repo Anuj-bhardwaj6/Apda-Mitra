@@ -69,7 +69,7 @@ export const VoiceAssistantSheet: React.FC<VoiceAssistantSheetProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end justify-center">
+    <div className="app-modal-overlay fixed inset-0 z-[1000] bg-black/60 backdrop-blur-xs flex items-end justify-center" style={{ zIndex: 1000 }}>
       <div className="bg-white dark:bg-[#131D2A] border-t border-[#CBD5E1] dark:border-[#24344B] w-full max-w-lg rounded-t-[32px] shadow-2xl p-5 sm:p-6 space-y-4 animate-in slide-in-from-bottom duration-300 text-[#1F2937] dark:text-white">
         {/* Top Handle & Close */}
         <div className="flex items-center justify-between pb-1">

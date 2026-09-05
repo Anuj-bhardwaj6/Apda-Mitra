@@ -67,7 +67,7 @@ export const LiveSituationMap: React.FC<LiveSituationMapProps> = ({
   };
 
   return (
-    <div className="w-full relative rounded-3xl overflow-hidden border border-[#CBD5E1] dark:border-[#24344B] shadow-sm bg-[#E9EDF0] dark:bg-[#131D2A] h-[380px] sm:h-[430px]">
+    <div className="w-full relative map-stacking-context isolate z-10 rounded-3xl overflow-hidden border border-[#CBD5E1] dark:border-[#24344B] shadow-sm bg-[#E9EDF0] dark:bg-[#131D2A] h-[380px] sm:h-[430px]">
       <LeafletMap
         latitude={latitude}
         longitude={longitude}

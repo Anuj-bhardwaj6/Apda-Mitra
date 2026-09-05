@@ -78,7 +78,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   };
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative map-stacking-context isolate z-10">
       <LeafletMap
         latitude={latitude}
         longitude={longitude}

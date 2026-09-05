@@ -530,12 +530,13 @@ export default function Page() {
               onOpenSOS={() => setIsSOSOpen(true)}
               accuracyMeters={accuracyMeters ?? undefined}
               lang={lang}
+              onOpenSearch={() => setIsLocationSearchOpen(true)}
             />
           )}
 
           {/* TAB 2: FULL GIS MAP (Leaflet OpenStreetMap Engine) */}
           {activeTab === 'map' && (
-            <div className="w-full h-[calc(100dvh-135px)] sm:h-[700px] relative pb-20 z-10">
+            <div className="w-full h-[calc(100dvh-135px)] sm:h-[700px] relative pb-20 z-10 map-stacking-context isolate">
               <InteractiveMap
                 latitude={lat ?? FALLBACK_LAT}
                 longitude={lon ?? FALLBACK_LON}
@@ -753,7 +754,7 @@ export default function Page() {
 
       {/* 7. Emergency SOS 112 Dispatch Modal */}
       {isSOSOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="app-modal-overlay fixed inset-0 z-[1000] bg-black/75 backdrop-blur-md flex items-center justify-center p-4" style={{ zIndex: 1000 }}>
           <div className="bg-white dark:bg-[#131D2A] border-2 border-[#D32F2F] w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-4 text-[#1F2937] dark:text-white relative animate-in zoom-in-95 text-center">
             <button
               onClick={() => setIsSOSOpen(false)}

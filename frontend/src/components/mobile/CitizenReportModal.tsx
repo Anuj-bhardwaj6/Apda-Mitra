@@ -137,7 +137,7 @@ export const CitizenReportModal: React.FC<CitizenReportProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="app-modal-overlay fixed inset-0 z-[1000] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto" style={{ zIndex: 1000 }}>
       <div className="bg-white border border-[#CBD5E1] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden p-5 sm:p-6 space-y-4 relative animate-in fade-in zoom-in-95 my-auto">
         <button
           onClick={onClose}
