@@ -77,13 +77,17 @@ export function getFeatureStyle(feature: any, layerColor: string = '#3B82F6'): L
   const baseFill = palette ? palette.fill : (props.fill_color || layerColor);
   const baseStroke = palette ? palette.stroke : (props.stroke_color || layerColor);
 
+  // Subtle fill opacity (approx 20–25%) so the underlying OpenStreetMap cartography remains clearly visible
+  const defaultFillOpacity = risk === 'critical' ? 0.24 : risk === 'high' ? 0.20 : 0.16;
+
   return {
     fillColor: baseFill,
-    fillOpacity: props.fill_opacity ?? (risk === 'critical' ? 0.45 : 0.3),
+    fillOpacity: props.fill_opacity ?? defaultFillOpacity,
     color: baseStroke,
-    weight: props.stroke_weight ?? (props.is_major ? 3.5 : 2),
+    weight: props.stroke_weight ?? (risk === 'critical' ? 2 : props.is_major ? 3 : 1.8),
     opacity: props.stroke_opacity ?? 0.85,
     dashArray: props.dash_array ?? undefined,
+    pane: 'gisPane',
   };
 }
 
@@ -100,6 +104,7 @@ export function createGeoJsonLayer(
   const defaultColor = options.defaultColor || '#3B82F6';
 
   return L.geoJSON(data, {
+    pane: 'gisPane',
     style: (feature) => getFeatureStyle(feature, defaultColor),
     pointToLayer: (feature, latlng) => {
       const props: GisGeoJsonProperties = feature.properties || {};
@@ -108,12 +113,13 @@ export function createGeoJsonLayer(
 
       // Custom Point Marker (CircleMarker with pulse effect or DivIcon)
       return L.circleMarker(latlng, {
+        pane: 'gisPane',
         radius: props.radius || 7,
         fillColor: palette.fill,
         color: '#FFFFFF',
         weight: 2,
         opacity: 1,
-        fillOpacity: 0.9,
+        fillOpacity: 0.85,
       });
     },
     onEachFeature: (feature, layer) => {
@@ -125,12 +131,12 @@ export function createGeoJsonLayer(
         className: 'gis-feature-popup',
       });
 
-      // Hover feedback
+      // Hover feedback: subtle highlight without turning the polygon dark
       layer.on('mouseover', (e) => {
         if ('setStyle' in e.target && typeof (e.target as any).setStyle === 'function') {
           (e.target as any).setStyle({
-            weight: 3.5,
-            fillOpacity: 0.6,
+            weight: 2.5,
+            fillOpacity: 0.35,
           });
         }
       });

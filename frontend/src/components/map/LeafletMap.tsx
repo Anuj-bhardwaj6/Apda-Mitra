@@ -148,6 +148,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   });
   const currentBaseLayerIdRef = useRef<BaseMapId>('osm');
   const gisLayersRef = useRef<Record<string, L.LayerGroup | L.GeoJSON | null>>({});
+  const activeGisLayersRef = useRef(activeGisLayers);
+  activeGisLayersRef.current = activeGisLayers;
 
   // Two-way synchronization between GIS Layer toggles and bottom chips
   const handleToggleGisLayer = useCallback((layerId: GisLayerId) => {
@@ -1044,7 +1046,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
                 defaultColor: color,
               });
               gisLayersRef.current[id] = newLayer;
-              if (activeGisLayers[id] && mapInstanceRef.current && !mapInstanceRef.current.hasLayer(newLayer)) {
+              if (activeGisLayersRef.current[id] && mapInstanceRef.current && !mapInstanceRef.current.hasLayer(newLayer)) {
                 mapInstanceRef.current.addLayer(newLayer);
               }
             })
@@ -1054,7 +1056,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
                 defaultColor: color,
               });
               gisLayersRef.current[id] = fallbackLayer;
-              if (activeGisLayers[id] && mapInstanceRef.current && !mapInstanceRef.current.hasLayer(fallbackLayer)) {
+              if (activeGisLayersRef.current[id] && mapInstanceRef.current && !mapInstanceRef.current.hasLayer(fallbackLayer)) {
                 mapInstanceRef.current.addLayer(fallbackLayer);
               }
             });
