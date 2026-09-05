@@ -65,6 +65,10 @@ export default function Page() {
 
   // WatchPosition Ref for real-time tracking and unmount cleanup (Requirement 4 & 14)
   const watchIdRef = useRef<number | null>(null);
+  // Location change throttling refs to eliminate rapid state thrashing on minor GPS jitter (Requirements 2, 3, 4)
+  const lastStateCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
+  const lastGeocodeCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
+  const lastSheltersCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
 
   // Modals & Sheets
   const [isJudgeHUDOpen, setIsJudgeHUDOpen] = useState(false);
@@ -105,8 +109,8 @@ export default function Page() {
       const userLat = pos.coords.latitude;
       const userLon = pos.coords.longitude;
       const userAcc = pos.coords.accuracy;
-      setLat(userLat);
-      setLon(userLon);
+
+      // Always update real-time accuracy and lock indicators
       setAccuracyMeters(userAcc);
       setIsGpsActive(true);
       setIsFallback(false);
@@ -114,20 +118,43 @@ export default function Page() {
       setLocationStatus('active');
       setPermissionState('granted');
 
-      try {
-        const res = await fetchApi<{ success: boolean; data: any }>(
-          `/geocoding/reverse?latitude=${userLat}&longitude=${userLon}`
-        );
-        if (res && res.data && res.data.formatted_name) {
-          setLocationName(res.data.formatted_name);
-        } else if (res && res.data && res.data.district) {
-          setLocationName(`${res.data.district}, ${res.data.state || 'India'}`);
-        } else {
+      // Update state coordinates only on initial lock or if movement exceeds ~15m (0.00015 deg)
+      const prevCoords = lastStateCoordsRef.current;
+      const hasSignificantMovement =
+        !prevCoords ||
+        Math.abs(prevCoords.lat - userLat) > 0.00015 ||
+        Math.abs(prevCoords.lon - userLon) > 0.00015;
+
+      if (hasSignificantMovement) {
+        lastStateCoordsRef.current = { lat: userLat, lon: userLon };
+        setLat(userLat);
+        setLon(userLon);
+      }
+
+      // Reverse geocode only if first time or moved > ~450m (0.004 deg)
+      const prevGeocode = lastGeocodeCoordsRef.current;
+      const shouldReverseGeocode =
+        !prevGeocode ||
+        Math.abs(prevGeocode.lat - userLat) > 0.004 ||
+        Math.abs(prevGeocode.lon - userLon) > 0.004;
+
+      if (shouldReverseGeocode) {
+        lastGeocodeCoordsRef.current = { lat: userLat, lon: userLon };
+        try {
+          const res = await fetchApi<{ success: boolean; data: any }>(
+            `/geocoding/reverse?latitude=${userLat}&longitude=${userLon}`
+          );
+          if (res && res.data && res.data.formatted_name) {
+            setLocationName(res.data.formatted_name);
+          } else if (res && res.data && res.data.district) {
+            setLocationName(`${res.data.district}, ${res.data.state || 'India'}`);
+          } else {
+            setLocationName(`${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°E`);
+          }
+        } catch {
+          // Clean coordinate representation if reverse-geocoding endpoint is unreachable
           setLocationName(`${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°E`);
         }
-      } catch {
-        // Clean coordinate representation if reverse-geocoding endpoint is unreachable
-        setLocationName(`${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°E`);
       }
     };
 
@@ -274,6 +301,17 @@ export default function Page() {
   // Fetch Live Shelters from Backend Overpass
   useEffect(() => {
     if (lat === null || lon === null) return;
+
+    // Guard: only fetch shelters if moved > ~500m
+    if (
+      lastSheltersCoordsRef.current &&
+      Math.abs(lastSheltersCoordsRef.current.lat - lat) < 0.005 &&
+      Math.abs(lastSheltersCoordsRef.current.lon - lon) < 0.005
+    ) {
+      return;
+    }
+    lastSheltersCoordsRef.current = { lat, lon };
+
     async function loadShelters() {
       try {
         const res = await fetchApi<{ success: boolean; data: ShelterResource[] }>(
@@ -316,6 +354,8 @@ export default function Page() {
   }, []);
 
   const handleSelectLocation = (name: string, newLat: number, newLon: number) => {
+    lastStateCoordsRef.current = { lat: newLat, lon: newLon };
+    lastGeocodeCoordsRef.current = { lat: newLat, lon: newLon };
     setLocationName(name);
     setLat(newLat);
     setLon(newLon);

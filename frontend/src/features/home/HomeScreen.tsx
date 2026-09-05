@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LocationPill } from './LocationPill';
 import { SafetyScoreHero } from './SafetyScoreHero';
 import { QuickActionChips } from './QuickActionChips';
@@ -62,8 +62,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   accuracyMeters,
   lang,
 }) => {
-  // Staged loading UX pipeline
-  const [loadStage, setLoadStage] = useState<number>(0);
+  // Staged loading UX pipeline: runs once on mount without destroying/recreating DOM elements
+  const [loadStage, setLoadStage] = useState<number>(3);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [weatherUXState, setWeatherUXState] = useState<UXState>('loading');
 
@@ -80,6 +80,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isShareStatusOpen, setIsShareStatusOpen] = useState(false);
 
+  // Cache ref to prevent continuous data re-fetching on minor GPS jitter (Requirements 2, 3, 4)
+  const lastFetchedCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
+
   // Data fetching based on mode & location
   const score = DisasterRepository.getSafetyScore(appMode);
   const timelineEvents = DisasterRepository.getTimelineEvents(appMode);
@@ -88,7 +91,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const nearestShelter = safePlaces[0];
 
   useEffect(() => {
-    // If coordinates are not yet resolved (e.g. waiting for user GPS permission), keep loading state
+    // If coordinates are not yet resolved, keep loading state
     if (latitude === null || longitude === null) {
       setWeatherData(null);
       setWeatherUXState('loading');
@@ -99,20 +102,25 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       return;
     }
 
-    // Stage 1 (0ms): Location is immediately ready
-    const t1 = setTimeout(() => setLoadStage(1), 100); // Risk banner
-    const t2 = setTimeout(() => setLoadStage(2), 250); // Map
-    const t3 = setTimeout(async () => {
-      setLoadStage(3); // Weather & cards
-      try {
-        const w = await WeatherRepository.getWeather(latitude, longitude, appMode);
+    // Guard against re-fetching on minor (< 200m) GPS jitter
+    if (
+      lastFetchedCoordsRef.current &&
+      Math.abs(lastFetchedCoordsRef.current.lat - latitude) < 0.002 &&
+      Math.abs(lastFetchedCoordsRef.current.lon - longitude) < 0.002
+    ) {
+      return;
+    }
+    lastFetchedCoordsRef.current = { lat: latitude, lon: longitude };
+
+    WeatherRepository.getWeather(latitude, longitude, appMode)
+      .then((w) => {
         setWeatherData(w);
         setWeatherUXState(isOffline ? 'offline' : 'loaded');
-      } catch {
+      })
+      .catch(() => {
         setWeatherData(null);
         setWeatherUXState('error');
-      }
-    }, 300);
+      });
 
     // Phase 3 telemetry & risk analysis fetch
     setIsRiskLoading(true);
@@ -126,12 +134,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       .then(setEnsembleForecast)
       .catch(() => setEnsembleForecast(null))
       .finally(() => setIsRiskLoading(false));
-
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-    };
   }, [latitude, longitude, appMode, isOffline, locationName]);
 
 
@@ -215,24 +217,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         /* Standard / Warning State Flow */
         <>
           {/* Live Situation Map (~45% Screen) */}
-          {loadStage >= 2 && (
-            <LiveSituationMap
-              latitude={latitude ?? 11.6854}
-              longitude={longitude ?? 76.1320}
-              locationName={locationName}
-              shelters={safePlaces}
-              reports={communityReports}
-              isGpsActive={isGpsActive}
-              isFallback={isFallback}
-              accuracyMeters={accuracyMeters}
-              onRefreshGPS={onRefreshGPS}
-              onOpenSearch={() => setIsSearchOpen(true)}
-              onSelectShelter={(sh) => {
-                window.open(`https://www.google.com/maps/dir/?api=1&destination=${sh.latitude},${sh.longitude}`, '_blank');
-              }}
-              lang={lang}
-            />
-          )}
+          <LiveSituationMap
+            latitude={latitude ?? 11.6854}
+            longitude={longitude ?? 76.1320}
+            locationName={locationName}
+            shelters={safePlaces}
+            reports={communityReports}
+            isGpsActive={isGpsActive}
+            isFallback={isFallback}
+            accuracyMeters={accuracyMeters}
+            onRefreshGPS={onRefreshGPS}
+            onOpenSearch={() => setIsSearchOpen(true)}
+            onSelectShelter={(sh) => {
+              window.open(`https://www.google.com/maps/dir/?api=1&destination=${sh.latitude},${sh.longitude}`, '_blank');
+            }}
+            lang={lang}
+          />
 
           {/* Quick Action Chips */}
           <QuickActionChips

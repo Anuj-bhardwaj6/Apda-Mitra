@@ -103,6 +103,10 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   // Smart centering & drag tracking refs (Requirement 4 & 9)
   const hasInitialCenteredRef = useRef<boolean>(false);
   const isUserInteractingRef = useRef<boolean>(false);
+  const basePlaceCoordsRef = useRef<{ lat: number; lon: number }>({
+    lat: 11.6854,
+    lon: 76.1320,
+  });
 
   // UI state
   const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null);
@@ -210,8 +214,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
               accuracyCircleRef.current = circle;
             }
 
-            // Requirement 9: Recenter to user's real coordinates
-            if (shouldRecenter || !hasInitialCenteredRef.current) {
+            // Requirement 9: Recenter to user's real coordinates ONLY on explicit locate request
+            if (shouldRecenter) {
               map.flyTo([freshLat, freshLon], 16.5, {
                 animate: true,
                 duration: 1.2,
@@ -320,6 +324,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     placeMarkersLayerRef.current = placeGroup;
 
     mapInstanceRef.current = map;
+    hasInitialCenteredRef.current = true;
 
     // Force tile recalculation on load
     setTimeout(() => {
@@ -400,15 +405,11 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   }, []);
 
   // Update Blue Current Location CircleMarker & Accuracy Circle (Requirements 5, 6, 7, 8)
+  // NOTE: GPS updates MUST ONLY update marker and accuracy circle positions.
+  // Never call map.setView(), map.flyTo(), map.fitBounds(), or map.invalidateSize() here!
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
-
-    // Centering behavior: center map on user location on initial load if not manually exploring
-    if (!hasInitialCenteredRef.current && !isUserInteractingRef.current) {
-      map.setView([effectiveLat, effectiveLon], isCompact ? 14 : 16);
-      hasInitialCenteredRef.current = true;
-    }
 
     const markerColor = isFallback ? '#D97706' : '#1A73E8';
     const accuracyColor = isFallback ? '#D97706' : '#1A73E8';
@@ -500,6 +501,16 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     const placeGroup = placeMarkersLayerRef.current;
     if (!map || !placeGroup) return;
 
+    // Update base place anchor if user moves more than ~5km
+    if (
+      Math.abs(basePlaceCoordsRef.current.lat - effectiveLat) > 0.05 ||
+      Math.abs(basePlaceCoordsRef.current.lon - effectiveLon) > 0.05
+    ) {
+      basePlaceCoordsRef.current = { lat: effectiveLat, lon: effectiveLon };
+    }
+    const bLat = basePlaceCoordsRef.current.lat;
+    const bLon = basePlaceCoordsRef.current.lon;
+
     placeGroup.clearLayers();
 
     // 1. Safe Shelter Markers (High-recognition Emerald Shield Pins)
@@ -511,8 +522,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           title: lang === 'hi' ? 'सामुदायिक राहत केंद्र (24/7 सुरक्षित)' : 'Community Evacuation Relief Center',
           subtitle: 'Designated Safe Shelter • Power & Medical Ready',
           description: 'Capacity for 400 evacuees with active food and emergency medical distribution.',
-          latitude: effectiveLat + 0.012,
-          longitude: effectiveLon + 0.015,
+          latitude: bLat + 0.012,
+          longitude: bLon + 0.015,
           distanceKm: 1.8,
           capacity: 400,
           occupancy: 140,
@@ -525,8 +536,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           title: lang === 'hi' ? 'सेंट्रल स्कूल शरण स्थल' : 'Central High School Relief Hub',
           subtitle: 'Multi-Purpose Evacuation Base',
           description: 'Reinforced concrete shelter with emergency diesel generator and fresh water storage.',
-          latitude: effectiveLat - 0.016,
-          longitude: effectiveLon - 0.011,
+          latitude: bLat - 0.016,
+          longitude: bLon - 0.011,
           distanceKm: 2.5,
           capacity: 600,
           occupancy: 210,
@@ -543,8 +554,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
               title: s.name || 'Emergency Safe Shelter',
               subtitle: s.address || s.facility_type || 'Verified Safe Evacuation Camp',
               description: `Shelter capacity: ${s.capacity || 350} spots • Current occupancy: ${s.current_occupancy || 80}`,
-              latitude: Number(s.latitude) || effectiveLat + (idx === 0 ? 0.012 : -0.014),
-              longitude: Number(s.longitude) || effectiveLon + (idx === 0 ? 0.015 : -0.012),
+              latitude: Number(s.latitude) || bLat + (idx === 0 ? 0.012 : -0.014),
+              longitude: Number(s.longitude) || bLon + (idx === 0 ? 0.015 : -0.012),
               distanceKm: s.distance_km || 2.1,
               capacity: s.capacity || 350,
               occupancy: s.current_occupancy || 80,
@@ -589,8 +600,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           title: lang === 'hi' ? 'जिला सामान्य अस्पताल (ट्रॉमा सेंटर)' : 'District General Hospital (Trauma Hub)',
           subtitle: 'Level 1 Emergency Care • 24/7 Blood Bank & ICU',
           description: 'Fully operational disaster emergency triage deck with 12 ambulance bays.',
-          latitude: effectiveLat + 0.024,
-          longitude: effectiveLon - 0.018,
+          latitude: bLat + 0.024,
+          longitude: bLon - 0.018,
           distanceKm: 3.4,
           contactPhone: '108',
           status: 'Open 24/7',
@@ -632,8 +643,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           title: lang === 'hi' ? 'सड़क पर भूस्खलन मलबा' : 'Landslide Debris & Road Block',
           subtitle: 'Citizen Verified • Road Inundated',
           description: 'Upper ghat road blocked by fallen rocks and wet slurry. PWD clearing underway.',
-          latitude: effectiveLat + 0.018,
-          longitude: effectiveLon - 0.009,
+          latitude: bLat + 0.018,
+          longitude: bLon - 0.009,
           severity: 'HIGH',
           verifiedCount: 14,
           status: 'Active Hazard',
@@ -644,8 +655,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           title: lang === 'hi' ? 'नदी जलस्तर वृद्धि' : 'Catchment River Water Surge',
           subtitle: 'Flood Sensor Alert',
           description: 'Water level rising near low bridge crossing. Caution advised for small vehicles.',
-          latitude: effectiveLat - 0.012,
-          longitude: effectiveLon + 0.022,
+          latitude: bLat - 0.012,
+          longitude: bLon + 0.022,
           severity: 'MODERATE',
           verifiedCount: 8,
           status: 'Under Watch',
@@ -660,8 +671,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
               title: r.category || 'Disaster Incident Report',
               subtitle: r.location_name || 'Field Community Observation',
               description: r.description || 'Verified on-ground incident reported via Apda-Mitra.',
-              latitude: Number(r.latitude) || effectiveLat + (idx === 0 ? 0.018 : -0.012),
-              longitude: Number(r.longitude) || effectiveLon + (idx === 0 ? -0.009 : 0.022),
+              latitude: Number(r.latitude) || bLat + (idx === 0 ? 0.018 : -0.012),
+              longitude: Number(r.longitude) || bLon + (idx === 0 ? -0.009 : 0.022),
               severity: r.severity || 'HIGH',
               verifiedCount: r.verified_count || 5,
               status: r.status || 'Active Hazard',
@@ -695,7 +706,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         placeGroup.addLayer(marker);
       });
     }
-  }, [activeLayers, effectiveLat, effectiveLon, shelters, reports, lang]);
+  }, [activeLayers, shelters, reports, lang]);
 
   // Render Evacuation Route Polyline (Requirement 3)
   useEffect(() => {
