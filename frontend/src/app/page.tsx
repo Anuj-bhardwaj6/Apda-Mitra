@@ -535,7 +535,7 @@ export default function Page() {
 
           {/* TAB 2: FULL GIS MAP (Leaflet OpenStreetMap Engine) */}
           {activeTab === 'map' && (
-            <div className="w-full h-[calc(100vh-140px)] sm:h-[700px] relative pb-20">
+            <div className="w-full h-[calc(100dvh-135px)] sm:h-[700px] relative pb-20 z-10">
               <InteractiveMap
                 latitude={lat ?? FALLBACK_LAT}
                 longitude={lon ?? FALLBACK_LON}

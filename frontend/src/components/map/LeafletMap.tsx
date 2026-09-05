@@ -1101,7 +1101,12 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       {/* 3. Top-Right: GIS Layers & "My Location" Button Cluster */}
       <div className="absolute top-3 right-3 z-[400] flex items-center space-x-2">
         <button
-          onClick={() => setIsGisPanelOpen((prev) => !prev)}
+          onClick={() => {
+            setIsGisPanelOpen((prev) => {
+              if (!prev) setSelectedPlace(null);
+              return !prev;
+            });
+          }}
           className={`h-10 px-3.5 rounded-full border shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer ${
             isGisPanelOpen
               ? 'bg-blue-600 text-white border-blue-600 shadow-blue-500/20'
