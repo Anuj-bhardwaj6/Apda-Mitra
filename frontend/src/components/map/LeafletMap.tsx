@@ -1094,14 +1094,17 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       {/* 1. Leaflet Map DOM Element */}
       <div ref={mapContainerRef} className="w-full h-full" />
 
-      {/* 2. Top-Left: Search & Location Pill Banner */}
-      <div className="absolute top-3 left-3 z-[400] flex items-center space-x-2">
+      {/* 2. Unified Top Control Bar: Location Pill, Layers Button, My Location Button in a Single Responsive Flex Row */}
+      <div className="absolute top-2.5 sm:top-3 left-2.5 sm:left-3 right-2.5 sm:right-3 z-[400] flex items-center gap-1.5 sm:gap-2 box-border pointer-events-none">
+        {/* Address / Location Pill: Flex-1, Graceful Ellipsis, Never Overlapped */}
         <button
           onClick={onOpenSearch}
-          className="bg-white/95 dark:bg-[#131D2A]/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-[#CBD5E1] dark:border-[#24344B] shadow-md flex items-center space-x-2 text-xs font-bold text-[#1F2937] dark:text-white hover:scale-102 active:scale-98 transition-all cursor-pointer"
+          className="pointer-events-auto flex-1 min-w-0 h-9 sm:h-10 bg-white/95 dark:bg-[#131D2A]/95 backdrop-blur-md px-2.5 sm:px-3.5 py-1.5 rounded-full sm:rounded-2xl border border-[#CBD5E1] dark:border-[#24344B] shadow-md flex items-center space-x-1.5 sm:space-x-2 text-xs font-bold text-[#1F2937] dark:text-white hover:scale-101 active:scale-98 transition-all cursor-pointer overflow-hidden box-border"
+          title={locationName}
+          aria-label="Search or select location"
         >
-          <span className={`w-2 h-2 rounded-full ${isLocating ? 'bg-[#1A73E8] animate-ping' : isGpsActive ? 'bg-[#10B981] animate-pulse' : 'bg-amber-500'}`} />
-          <span className="truncate max-w-[150px] sm:max-w-[220px]">
+          <span className={`w-2 h-2 rounded-full shrink-0 ${isLocating ? 'bg-[#1A73E8] animate-ping' : isGpsActive ? 'bg-[#10B981] animate-pulse' : 'bg-amber-500'}`} />
+          <span className="truncate flex-1 min-w-0 text-left text-xs font-bold whitespace-nowrap">
             {isLocating
               ? (lang === 'hi' ? 'जीपीएस खोज रहा है...' : 'Acquiring Live GPS...')
               : (!isFallback || isGpsActive)
@@ -1110,18 +1113,15 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
                     : `${effectiveLat.toFixed(4)}°N, ${effectiveLon.toFixed(4)}°E`)
                 : locationErrorMessage || locationName}
           </span>
+          {isGpsActive && !isLocating && (
+            <span className="hidden lg:inline-flex shrink-0 bg-[#E8F5E9] dark:bg-[#1A3320] text-[#2E7D32] dark:text-[#81C784] border border-[#A5D6A7] text-[10px] font-bold px-1.5 py-0.5 rounded-md items-center space-x-1 ml-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#2E7D32] animate-ping" />
+              <span>GPS</span>
+            </span>
+          )}
         </button>
 
-        {isGpsActive && !isLocating && (
-          <span className="bg-[#E8F5E9] dark:bg-[#1A3320] text-[#2E7D32] dark:text-[#81C784] border border-[#A5D6A7] text-[10px] font-bold px-2 py-1 rounded-xl shadow-xs flex items-center space-x-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#2E7D32] animate-ping" />
-            <span>GPS Active</span>
-          </span>
-        )}
-      </div>
-
-      {/* 3. Top-Right: GIS Layers & "My Location" Button Cluster */}
-      <div className="absolute top-3 right-3 z-[400] flex items-center space-x-2">
+        {/* GIS Layers Button: Shrink-0, Fully Clickable, Never Overlaps Pill */}
         <button
           onClick={() => {
             setIsGisPanelOpen((prev) => {
@@ -1129,7 +1129,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
               return !prev;
             });
           }}
-          className={`h-10 px-3.5 rounded-full border shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer ${
+          className={`pointer-events-auto shrink-0 h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-full border shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer ${
             isGisPanelOpen
               ? 'bg-blue-600 text-white border-blue-600 shadow-blue-500/20'
               : 'bg-white dark:bg-[#131D2A] text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:border-blue-400'
@@ -1137,7 +1137,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           title={lang === 'hi' ? 'जीआईएस मैप लेयर्स' : 'GIS Map Layers'}
           aria-label="GIS Layers"
         >
-          <Layers className={`w-4 h-4 shrink-0 ${isGisPanelOpen ? 'text-white' : 'text-blue-600 dark:text-blue-400'}`} />
+          <Layers className={`w-3.5 sm:w-4 h-3.5 sm:h-4 shrink-0 ${isGisPanelOpen ? 'text-white' : 'text-blue-600 dark:text-blue-400'}`} />
           <span className="text-xs font-bold whitespace-nowrap">
             {lang === 'hi' ? 'लेयर्स' : 'Layers'}
           </span>
@@ -1150,19 +1150,20 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           </span>
         </button>
 
+        {/* My Location Button: Shrink-0, Fully Clickable, Never Overlaps Pill */}
         <button
           onClick={handleLocateMe}
           disabled={isLocating}
-          className="h-10 px-3.5 rounded-full bg-white dark:bg-[#131D2A] border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer group"
+          className="pointer-events-auto shrink-0 h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-full bg-white dark:bg-[#131D2A] border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer group"
           title={lang === 'hi' ? 'मेरा स्थान (My Location)' : 'My Location'}
           aria-label="My Location"
         >
           {isLocating ? (
-            <div className="w-4 h-4 rounded-full border-2 border-[#1A73E8] border-t-transparent animate-spin shrink-0" />
+            <div className="w-3.5 sm:w-4 h-3.5 sm:h-4 rounded-full border-2 border-[#1A73E8] border-t-transparent animate-spin shrink-0" />
           ) : (
             <svg
-              width="18"
-              height="18"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
