@@ -15,7 +15,13 @@ from app.routers import (
     assistant, 
     command_center,
     routing,
-    websocket_router
+    websocket_router,
+    flood,
+    air_quality,
+    elevation,
+    historical_weather,
+    ensemble,
+    risk_analysis
 )
 
 # Configure logging
@@ -49,6 +55,12 @@ app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(hazard.router, prefix=settings.API_V1_STR)
 app.include_router(weather.router, prefix=settings.API_V1_STR)
 app.include_router(geocoding.router, prefix=settings.API_V1_STR)
+app.include_router(flood.router, prefix=settings.API_V1_STR)
+app.include_router(air_quality.router, prefix=settings.API_V1_STR)
+app.include_router(elevation.router, prefix=settings.API_V1_STR)
+app.include_router(historical_weather.router, prefix=settings.API_V1_STR)
+app.include_router(ensemble.router, prefix=settings.API_V1_STR)
+app.include_router(risk_analysis.router, prefix=settings.API_V1_STR)
 app.include_router(saved_places.router, prefix=settings.API_V1_STR)
 app.include_router(reports.router, prefix=settings.API_V1_STR)
 app.include_router(emergency.router, prefix=settings.API_V1_STR)

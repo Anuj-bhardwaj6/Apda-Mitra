@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShieldAlert,
   AlertTriangle,
@@ -17,10 +17,20 @@ import {
   Flame,
   Volume2,
   Clock,
-  Check
+  Check,
+  Waves,
+  Mountain,
+  Gauge,
+  Activity,
+  Layers,
+  TrendingUp,
+  Info
 } from 'lucide-react';
 import { InteractiveMap } from '@/components/map/InteractiveMap';
-import { EOCMetrics, CitizenReport } from '@/lib/api';
+import { EOCMetrics, CitizenReport, DisasterRiskAnalysisResponse, EnsembleForecastSummary, HistoricalWeatherSummary } from '@/lib/api';
+import { EnvironmentalRepository } from '@/repositories/EnvironmentalRepository';
+import { RiskAnalysisRepository } from '@/repositories/RiskAnalysisRepository';
+import { EnvironmentalMetrics } from '@/shared/types';
 
 interface OfficerCommandCenterProps {
   metrics: EOCMetrics | null;
@@ -37,12 +47,36 @@ export const OfficerCommandCenter: React.FC<OfficerCommandCenterProps> = ({
   onBroadcastAlert,
   lang = 'en',
 }) => {
-  const [activeTab, setActiveTab] = useState<'broadcast' | 'triage' | 'ndrf'>('broadcast');
+  const [activeTab, setActiveTab] = useState<'broadcast' | 'triage' | 'ndrf' | 'sensors'>('broadcast');
   const [title, setTitle] = useState('');
   const [district, setDistrict] = useState('Wayanad District');
   const [severity, setSeverity] = useState('Red Alert');
   const [summary, setSummary] = useState('');
   const [broadcastSent, setBroadcastSent] = useState(false);
+  const [envMetrics, setEnvMetrics] = useState<EnvironmentalMetrics | null>(null);
+  const [isEnvLoading, setIsEnvLoading] = useState(false);
+  const [riskData, setRiskData] = useState<DisasterRiskAnalysisResponse | null>(null);
+  const [ensembleData, setEnsembleData] = useState<EnsembleForecastSummary | null>(null);
+  const [historicalData, setHistoricalData] = useState<HistoricalWeatherSummary | null>(null);
+
+  useEffect(() => {
+    setIsEnvLoading(true);
+    EnvironmentalRepository.getCombinedEnvironmental(11.6854, 76.1320, 'District DEOC Catchment')
+      .then((data) => setEnvMetrics(data))
+      .catch(() => {})
+      .finally(() => setIsEnvLoading(false));
+
+    RiskAnalysisRepository.getDisasterRiskAnalysis(11.6854, 76.1320, 'District DEOC Catchment')
+      .then(setRiskData)
+      .catch(() => {});
+    RiskAnalysisRepository.getEnsembleForecast(11.6854, 76.1320, 'icon_seamless', 'District DEOC Catchment')
+      .then(setEnsembleData)
+      .catch(() => {});
+    RiskAnalysisRepository.getHistoricalWeather(11.6854, 76.1320, 14, 'District DEOC Catchment')
+      .then(setHistoricalData)
+      .catch(() => {});
+  }, []);
+
 
   const handleBroadcast = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,38 +199,49 @@ export const OfficerCommandCenter: React.FC<OfficerCommandCenterProps> = ({
       {/* 2. RIGHT OPERATIONAL INTELLIGENCE & CONTROL PANEL (35% Viewport Area) */}
       <div className="w-full lg:w-[35%] h-[50vh] lg:h-full bg-white flex flex-col overflow-y-auto">
         {/* Navigation Tabs */}
-        <div className="p-2 bg-[#F8FAFC] border-b border-[#E5E7EB] grid grid-cols-3 gap-1.5 shrink-0">
+        <div className="p-2 bg-[#F8FAFC] border-b border-[#E5E7EB] grid grid-cols-4 gap-1 shrink-0">
           <button
             onClick={() => setActiveTab('broadcast')}
-            className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`py-2 text-[11px] font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'broadcast'
                 ? 'bg-[#0F4C81] text-white shadow-xs'
                 : 'text-[#6B7280] hover:bg-slate-200'
             }`}
           >
-            📢 Broadcast Alert
+            📢 Broadcast
           </button>
           <button
             onClick={() => setActiveTab('triage')}
-            className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`py-2 text-[11px] font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'triage'
                 ? 'bg-[#0F4C81] text-white shadow-xs'
                 : 'text-[#6B7280] hover:bg-slate-200'
             }`}
           >
-            📋 Incident Triage
+            📋 Triage
           </button>
           <button
             onClick={() => setActiveTab('ndrf')}
-            className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`py-2 text-[11px] font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'ndrf'
                 ? 'bg-[#0F4C81] text-white shadow-xs'
                 : 'text-[#6B7280] hover:bg-slate-200'
             }`}
           >
-            🚜 NDRF Matrix
+            🚜 NDRF
+          </button>
+          <button
+            onClick={() => setActiveTab('sensors')}
+            className={`py-2 text-[11px] font-bold rounded-xl transition-all cursor-pointer ${
+              activeTab === 'sensors'
+                ? 'bg-[#0F4C81] text-white shadow-xs'
+                : 'text-[#6B7280] hover:bg-slate-200'
+            }`}
+          >
+            🌊 Telemetry
           </button>
         </div>
+
 
         {/* EOC Key Metrics Ribbon */}
         <div className="p-3 bg-white border-b border-[#E5E7EB] grid grid-cols-4 gap-2 text-center shrink-0">
@@ -408,8 +453,260 @@ export const OfficerCommandCenter: React.FC<OfficerCommandCenterProps> = ({
               </div>
             </div>
           )}
+
+          {/* Tab 4: Environmental Telemetry Feeds (Open-Meteo Multi-API) */}
+          {activeTab === 'sensors' && (
+            <div className="space-y-3.5 animate-in fade-in text-xs max-h-[calc(100vh-200px)] overflow-y-auto pr-1">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#1F2937]">
+                  Catchment Basin, Ensemble & Risk Intelligence
+                </h3>
+                <span className="text-[10px] text-[#0F4C81] font-bold bg-[#EBF3FA] px-2 py-0.5 rounded-full border border-[#D0E2F2]">
+                  {isEnvLoading ? 'Refreshing Feeds...' : '6 Open-Meteo Live APIs'}
+                </span>
+              </div>
+
+              {/* Phase 3: Explainable Composite Disaster Early-Warning Risk */}
+              {riskData && (
+                <div className="p-3.5 bg-white rounded-xl border-2 border-[#CBD5E1] shadow-sm space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-1.5 font-bold text-[#1F2937]">
+                      <Activity className="w-4 h-4 text-rose-600" />
+                      <span>Composite Environmental Early-Warning Risk</span>
+                    </div>
+                    <span
+                      className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                        riskData.risk_level === 'CRITICAL'
+                          ? 'bg-rose-600 text-white animate-pulse'
+                          : riskData.risk_level === 'HIGH'
+                          ? 'bg-orange-500 text-white'
+                          : riskData.risk_level === 'MEDIUM'
+                          ? 'bg-amber-500 text-slate-900'
+                          : 'bg-emerald-600 text-white'
+                      }`}
+                    >
+                      {riskData.risk_level} RISK ({riskData.overall_risk_score}/100)
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-gray-700 font-medium">
+                    {lang === 'hi' ? riskData.headline_hi : riskData.headline}
+                  </p>
+
+                  {/* Factor reasons list */}
+                  <div className="space-y-1 pt-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">
+                      Contributing Factor Audit ({riskData.reasons.length} streams)
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                      {riskData.reasons.map((f, i) => (
+                        <div key={i} className="p-1.5 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] flex items-center justify-between text-[11px]">
+                          <span className="font-semibold text-gray-800">{f.title}</span>
+                          <span className={`font-bold text-[10px] px-1.5 py-0.2 rounded uppercase ${
+                            f.severity === 'critical' || f.severity === 'high'
+                              ? 'text-rose-600 bg-rose-50'
+                              : f.severity === 'medium'
+                              ? 'text-amber-600 bg-amber-50'
+                              : 'text-emerald-700 bg-emerald-50'
+                          }`}>
+                            +{f.score_contribution} ({f.severity})
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Early Warning Indicator Disclaimer */}
+                  <div className="p-2 bg-amber-50 border border-amber-200/70 rounded-lg text-[10px] text-amber-800 flex items-start space-x-1.5">
+                    <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-600" />
+                    <span>{riskData.disclaimer}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Phase 3: 40-Member Weather Ensemble Forecast & Uncertainty */}
+              {ensembleData && (
+                <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-1.5 font-bold text-[#1F2937]">
+                      <Layers className="w-4 h-4 text-indigo-600" />
+                      <span>DWD ICON {ensembleData.member_count}-Member Ensemble Spread</span>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      {ensembleData.uncertainty_level} Uncertainty ({ensembleData.overall_confidence_pct}%)
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                      <span className="text-[10px] text-gray-500 block">48h Rain Mean</span>
+                      <span className="text-sm font-black text-[#1F2937]">{ensembleData.mean_precipitation_next_48h_mm} mm</span>
+                    </div>
+                    <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                      <span className="text-[10px] text-gray-500 block">Peak Member</span>
+                      <span className="text-sm font-black text-indigo-600">{ensembleData.max_member_precipitation_48h_mm} mm</span>
+                    </div>
+                    <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                      <span className="text-[10px] text-gray-500 block">P(&gt;10mm Rain)</span>
+                      <span className="text-sm font-black text-[#1F2937]">{ensembleData.exceedance_prob_10mm_pct}%</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Phase 3: 14-Day Historical Trend & Antecedent Moisture */}
+              {historicalData && (
+                <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-1.5 font-bold text-[#1F2937]">
+                      <TrendingUp className="w-4 h-4 text-teal-600" />
+                      <span>{historicalData.lookback_days}-Day Historical Moisture & Soil Saturation</span>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                      Trend: {historicalData.rainfall_trend}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                      <span className="text-[10px] text-gray-500 block">14d Cumulative</span>
+                      <span className="text-sm font-black text-[#1F2937]">{historicalData.total_rainfall_mm} mm</span>
+                    </div>
+                    <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                      <span className="text-[10px] text-gray-500 block">7d Cumulative</span>
+                      <span className="text-sm font-black text-[#1F2937]">{historicalData.ml_feature_vector?.precip_7d_sum_mm ?? 0} mm</span>
+                    </div>
+                    <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                      <span className="text-[10px] text-gray-500 block">Moisture Index (AMI)</span>
+                      <span className="text-sm font-black text-teal-700">{historicalData.ml_feature_vector?.antecedent_moisture_index ?? 0}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Flood Catchment Telemetry */}
+              <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 font-bold text-[#1F2937]">
+                    <Waves className="w-4 h-4 text-[#0F4C81]" />
+                    <span>River Catchment & Basin Flow (Flood API)</span>
+                  </div>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      envMetrics?.floodRiskLevel === 'High'
+                        ? 'bg-[#FFEBEE] text-[#C62828] border border-[#EF9A9A]'
+                        : envMetrics?.floodRiskLevel === 'Moderate'
+                        ? 'bg-[#FEF3C7] text-[#D97706] border border-[#FCD34D]'
+                        : envMetrics?.floodRiskLevel
+                        ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#A5D6A7]'
+                        : 'bg-slate-100 text-slate-500 border border-slate-200'
+                    }`}
+                  >
+                    {envMetrics?.floodRiskLevel ? `${envMetrics.floodRiskLevel} Risk` : 'Unavailable'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                    <span className="text-[10px] text-gray-500 block">Current Flow</span>
+                    <span className="text-sm font-black text-[#1F2937]">
+                      {envMetrics?.riverDischargeM3s !== undefined ? `${envMetrics.riverDischargeM3s} m³/s` : 'Unavailable'}
+                    </span>
+                  </div>
+                  <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                    <span className="text-[10px] text-gray-500 block">Peak Discharge</span>
+                    <span className="text-sm font-black text-[#1F2937]">
+                      {envMetrics?.peakDischargeM3s !== undefined ? `${envMetrics.peakDischargeM3s} m³/s` : 'Unavailable'}
+                    </span>
+                  </div>
+                  <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                    <span className="text-[10px] text-gray-500 block">Flow Trend</span>
+                    <span className="text-sm font-black text-[#0F4C81]">{envMetrics?.dischargeTrend ?? '—'}</span>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-[#4B5563] bg-white p-2 rounded-lg border border-[#E2E8F0]">
+                  {envMetrics?.floodRecommendation ?? 'River levels telemetry unavailable.'}
+                </p>
+              </div>
+
+              {/* Air Quality Telemetry */}
+              <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 font-bold text-[#1F2937]">
+                    <Gauge className="w-4 h-4 text-emerald-600" />
+                    <span>Atmospheric Air Quality & Particulates</span>
+                  </div>
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                    style={{
+                      backgroundColor: envMetrics?.usAqi !== undefined ? (envMetrics.usAqi <= 50 ? '#E8F5E9' : '#FFF8E1') : '#F1F5F9',
+                      borderColor: envMetrics?.usAqi !== undefined ? (envMetrics.usAqi <= 50 ? '#A5D6A7' : '#FFE082') : '#CBD5E1',
+                      color: envMetrics?.usAqi !== undefined ? (envMetrics.usAqi <= 50 ? '#2E7D32' : '#B78103') : '#64748B',
+                    }}
+                  >
+                    {envMetrics?.usAqi !== undefined ? `AQI ${envMetrics.usAqi} (${envMetrics?.aqiCategory ?? 'Normal'})` : 'Unavailable'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-center">
+                  <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                    <span className="text-[10px] text-gray-500 block">Fine PM2.5</span>
+                    <span className="text-sm font-black text-[#1F2937]">
+                      {envMetrics?.pm25 !== undefined ? `${envMetrics.pm25} µg/m³` : '—'}
+                    </span>
+                  </div>
+                  <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                    <span className="text-[10px] text-gray-500 block">Coarse PM10</span>
+                    <span className="text-sm font-black text-[#1F2937]">
+                      {envMetrics?.pm10 !== undefined ? `${envMetrics.pm10} µg/m³` : '—'}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-[#4B5563] bg-white p-2 rounded-lg border border-[#E2E8F0]">
+                  {envMetrics?.healthAdvisory ?? 'Air quality telemetry unavailable.'}
+                </p>
+              </div>
+
+              {/* Elevation & Slope Topography */}
+              <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 font-bold text-[#1F2937]">
+                    <Mountain className="w-4 h-4 text-slate-700" />
+                    <span>Topography & Slope Hazard Risk (Elevation API)</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                    {envMetrics?.terrainType ?? '—'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                    <span className="text-[10px] text-gray-500 block">Altitude</span>
+                    <span className="text-sm font-black text-[#1F2937]">
+                      {envMetrics?.elevationM !== undefined ? `${envMetrics.elevationM} m` : 'Unavailable'}
+                    </span>
+                  </div>
+                  <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                    <span className="text-[10px] text-gray-500 block">Slope Angle</span>
+                    <span className="text-sm font-black text-[#1F2937]">
+                      {envMetrics?.slopeDegrees !== undefined ? `${envMetrics.slopeDegrees}°` : '—'}
+                    </span>
+                  </div>
+                  <div className="p-2 bg-white rounded-lg border border-[#E2E8F0]">
+                    <span className="text-[10px] text-gray-500 block">Facing Aspect</span>
+                    <span className="text-sm font-black text-[#1F2937]">
+                      {envMetrics?.aspectDegrees !== undefined ? `${envMetrics.aspectDegrees}°` : '—'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
+

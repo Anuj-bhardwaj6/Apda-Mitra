@@ -18,17 +18,29 @@ import { ShareStatusSheet } from './ShareStatusSheet';
 import { DisasterRepository } from '@/repositories/DisasterRepository';
 import { WeatherRepository } from '@/repositories/WeatherRepository';
 import { ShelterRepository } from '@/repositories/ShelterAndJourneyRepository';
+import { RiskAnalysisRepository } from '@/repositories/RiskAnalysisRepository';
+import { DisasterRiskDashboardCard } from '@/features/risk/DisasterRiskDashboardCard';
 import { DisasterAppMode } from '@/shared/types/disaster';
 import { WeatherData, ShelterItem, UXState } from '@/shared/types';
+import { 
+  DisasterRiskAnalysisResponse, 
+  HistoricalWeatherSummary, 
+  EnsembleForecastSummary 
+} from '@/lib/api';
 import { WifiOff } from 'lucide-react';
 
 interface HomeScreenProps {
   locationName: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   appMode: DisasterAppMode;
   isOffline: boolean;
+  isGpsActive?: boolean;
+  isFallback?: boolean;
+  locationStatus?: 'prompt' | 'detecting' | 'active' | 'denied' | 'unavailable' | 'unsupported' | 'manual';
+  permissionState?: 'prompt' | 'granted' | 'denied' | 'unknown';
   onSelectLocation: (name: string, lat: number, lon: number) => void;
+  onRefreshGPS?: () => void;
   onOpenSOS: () => void;
   lang: 'en' | 'hi';
 }
@@ -39,7 +51,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   longitude,
   appMode,
   isOffline,
+  isGpsActive = false,
+  isFallback = false,
+  locationStatus = 'prompt',
+  permissionState = 'unknown',
   onSelectLocation,
+  onRefreshGPS,
   onOpenSOS,
   lang,
 }) => {
@@ -47,6 +64,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [loadStage, setLoadStage] = useState<number>(0);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [weatherUXState, setWeatherUXState] = useState<UXState>('loading');
+
+  // Phase 3: Risk Analysis, Historical Trends, and Ensemble Forecast state
+  const [riskAnalysis, setRiskAnalysis] = useState<DisasterRiskAnalysisResponse | null>(null);
+  const [historicalWeather, setHistoricalWeather] = useState<HistoricalWeatherSummary | null>(null);
+  const [ensembleForecast, setEnsembleForecast] = useState<EnsembleForecastSummary | null>(null);
+  const [isRiskLoading, setIsRiskLoading] = useState<boolean>(true);
 
   // Modals state
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -63,22 +86,52 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const nearestShelter = safePlaces[0];
 
   useEffect(() => {
+    // If coordinates are not yet resolved (e.g. waiting for user GPS permission), keep loading state
+    if (latitude === null || longitude === null) {
+      setWeatherData(null);
+      setWeatherUXState('loading');
+      setRiskAnalysis(null);
+      setHistoricalWeather(null);
+      setEnsembleForecast(null);
+      setIsRiskLoading(true);
+      return;
+    }
+
     // Stage 1 (0ms): Location is immediately ready
     const t1 = setTimeout(() => setLoadStage(1), 100); // Risk banner
     const t2 = setTimeout(() => setLoadStage(2), 250); // Map
     const t3 = setTimeout(async () => {
       setLoadStage(3); // Weather & cards
-      const w = await WeatherRepository.getWeather(latitude, longitude, appMode);
-      setWeatherData(w);
-      setWeatherUXState(isOffline ? 'offline' : 'loaded');
-    }, 450);
+      try {
+        const w = await WeatherRepository.getWeather(latitude, longitude, appMode);
+        setWeatherData(w);
+        setWeatherUXState(isOffline ? 'offline' : 'loaded');
+      } catch {
+        setWeatherData(null);
+        setWeatherUXState('error');
+      }
+    }, 300);
+
+    // Phase 3 telemetry & risk analysis fetch
+    setIsRiskLoading(true);
+    RiskAnalysisRepository.getDisasterRiskAnalysis(latitude, longitude, locationName)
+      .then(setRiskAnalysis)
+      .catch(() => setRiskAnalysis(null));
+    RiskAnalysisRepository.getHistoricalWeather(latitude, longitude, 14, locationName)
+      .then(setHistoricalWeather)
+      .catch(() => setHistoricalWeather(null));
+    RiskAnalysisRepository.getEnsembleForecast(latitude, longitude, 'icon_seamless', locationName)
+      .then(setEnsembleForecast)
+      .catch(() => setEnsembleForecast(null))
+      .finally(() => setIsRiskLoading(false));
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
     };
-  }, [latitude, longitude, appMode, isOffline]);
+  }, [latitude, longitude, appMode, isOffline, locationName]);
+
 
   const handleQuickAction = (action: string) => {
     if (action === 'emergency') onOpenSOS();
@@ -112,10 +165,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       <LocationPill
         locationName={locationName}
         updatedAgo={score.updatedAgo}
+        elevationMeters={weatherData?.elevationM}
+        latitude={latitude ?? undefined}
+        longitude={longitude ?? undefined}
+        isGpsActive={isGpsActive}
+        isFallback={isFallback}
+        status={locationStatus}
+        permissionState={permissionState}
         onOpenSearch={() => setIsSearchOpen(true)}
-        onRefreshGPS={() => onSelectLocation(locationName, latitude, longitude)}
+        onRefreshGPS={onRefreshGPS || (() => onSelectLocation(locationName, latitude ?? 11.6854, longitude ?? 76.1320))}
         lang={lang}
       />
+
 
       {/* 2. Am I safe? Safety Score Banner (Hero ~170px) */}
       {loadStage >= 1 && (
@@ -130,20 +191,32 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
       {/* 3. Disaster High Emergency State Transformation */}
       {appMode === 'disaster' ? (
-        <EmergencyModeView
-          nearestShelter={nearestShelter}
-          locationName={locationName}
-          onOpenShareStatus={() => setIsShareStatusOpen(true)}
-          lang={lang}
-        />
+        <>
+          <EmergencyModeView
+            nearestShelter={nearestShelter}
+            locationName={locationName}
+            onOpenShareStatus={() => setIsShareStatusOpen(true)}
+            lang={lang}
+          />
+          {/* Phase 3: Explainable Disaster Early-Warning Risk Intelligence Card */}
+          <div id="risk-analysis-section">
+            <DisasterRiskDashboardCard
+              riskData={riskAnalysis}
+              historicalData={historicalWeather}
+              ensembleData={ensembleForecast}
+              isLoading={isRiskLoading}
+              lang={lang}
+            />
+          </div>
+        </>
       ) : (
         /* Standard / Warning State Flow */
         <>
           {/* Live Situation Map (~45% Screen) */}
           {loadStage >= 2 && (
             <LiveSituationMap
-              latitude={latitude}
-              longitude={longitude}
+              latitude={latitude ?? 11.6854}
+              longitude={longitude ?? 76.1320}
               locationName={locationName}
               shelters={safePlaces}
               reports={communityReports}
@@ -160,6 +233,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             onSelectAction={handleQuickAction}
             lang={lang}
           />
+
+          {/* Phase 3: Explainable Disaster Early-Warning Risk Intelligence Card */}
+          <div id="risk-analysis-section">
+            <DisasterRiskDashboardCard
+              riskData={riskAnalysis}
+              historicalData={historicalWeather}
+              ensembleData={ensembleForecast}
+              isLoading={isRiskLoading}
+              lang={lang}
+            />
+          </div>
 
           {/* Apple Weather Style Card */}
           <div id="weather-section">

@@ -72,9 +72,14 @@ export interface HazardEvaluation {
 
 export interface HourlyForecastItem {
   hour: number;
+  relative_hour?: number;
+  time_iso?: string;
   temp_c: number;
   precip_mm: number;
   humidity: number;
+  precip_probability_pct?: number;
+  weather_code?: number;
+  condition?: string;
 }
 
 export interface DailyForecastItem {
@@ -82,6 +87,9 @@ export interface DailyForecastItem {
   temp_max: number;
   temp_min: number;
   precip_sum: number;
+  precip_probability_max?: number;
+  weather_code?: number;
+  condition?: string;
 }
 
 export interface WeatherSummary {
@@ -98,7 +106,10 @@ export interface WeatherSummary {
   soil_moisture_pct: number;
   soil_moisture_surface?: number;
   soil_moisture_rootzone?: number;
+  soil_saturation_status?: string;
+  rainfall_alert_tier?: string;
   uv_index?: number;
+  weather_code?: number;
   weather_condition: string;
   hourly_forecast?: HourlyForecastItem[];
   daily_forecast?: DailyForecastItem[];
@@ -213,3 +224,158 @@ export interface StructuredLocation {
   longitude: number;
   source: string;
 }
+
+export interface FloodDailyStep {
+  date: string;
+  day: number;
+  river_discharge_m3s: number;
+  river_discharge_mean_m3s: number;
+  river_discharge_max_m3s: number;
+  river_discharge_min_m3s: number;
+}
+
+export interface FloodSummary {
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  current_discharge_m3s: number;
+  mean_discharge_m3s: number;
+  peak_discharge_m3s: number;
+  discharge_trend: string;
+  flood_risk_level: string;
+  alert_tier: string;
+  recommendation: string;
+  daily_forecast: FloodDailyStep[];
+  source: string;
+  trust_layer: TrustLayer;
+}
+
+export interface AirQualitySummary {
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  us_aqi: number;
+  european_aqi: number;
+  pm2_5: number;
+  pm10: number;
+  nitrogen_dioxide: number;
+  sulphur_dioxide: number;
+  ozone: number;
+  carbon_monoxide: number;
+  aqi_category: string;
+  aqi_color: string;
+  health_advisory: string;
+  source: string;
+  trust_layer: TrustLayer;
+}
+
+export interface TerrainProfile {
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  elevation_m: number;
+  slope_degrees: number;
+  aspect_degrees: number;
+  terrain_type: string;
+  source: string;
+  trust_layer: TrustLayer;
+}
+
+export interface HistoricalDayStep {
+  date: string;
+  temp_max_c: number;
+  temp_min_c: number;
+  temp_mean_c: number;
+  precipitation_mm: number;
+  wind_speed_max_kmh: number;
+  humidity_mean_pct: number;
+}
+
+export interface MLTrainingFeatureVector {
+  timestamp: string;
+  latitude: number;
+  longitude: number;
+  precip_7d_sum_mm: number;
+  precip_14d_sum_mm: number;
+  temp_mean_c: number;
+  humidity_mean_pct: number;
+  wind_max_kmh: number;
+  antecedent_moisture_index: number;
+  normalized_features: Record<string, number>;
+}
+
+export interface HistoricalWeatherSummary {
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  start_date: string;
+  end_date: string;
+  lookback_days: number;
+  total_rainfall_mm: number;
+  rainfall_anomaly_pct: number;
+  mean_temperature_c: number;
+  max_wind_speed_kmh: number;
+  rainfall_trend: string;
+  daily_history: HistoricalDayStep[];
+  ml_feature_vector: MLTrainingFeatureVector;
+  source: string;
+  trust_layer: TrustLayer;
+}
+
+export interface EnsembleDailyStep {
+  date: string;
+  precip_mean_mm: number;
+  precip_min_mm: number;
+  precip_max_mm: number;
+  precip_spread_mm: number;
+  temp_mean_c: number;
+  temp_min_c: number;
+  temp_max_c: number;
+  confidence_pct: number;
+}
+
+export interface EnsembleForecastSummary {
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  member_count: number;
+  model_name: string;
+  overall_confidence_pct: number;
+  uncertainty_level: string;
+  mean_precipitation_next_48h_mm: number;
+  max_member_precipitation_48h_mm: number;
+  exceedance_prob_10mm_pct: number;
+  exceedance_prob_25mm_pct: number;
+  exceedance_prob_50mm_pct: number;
+  daily_forecast: EnsembleDailyStep[];
+  source: string;
+  trust_layer: TrustLayer;
+}
+
+export interface RiskFactorReason {
+  category: string;
+  title: string;
+  title_hi: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  score_contribution: number;
+  description: string;
+  metric_value: string;
+}
+
+export interface DisasterRiskAnalysisResponse {
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  overall_risk_score: number;
+  risk_level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  disclaimer: string;
+  headline: string;
+  headline_hi: string;
+  action_guidance: string;
+  reasons: RiskFactorReason[];
+  environmental_snapshot: Record<string, any>;
+  source: string;
+  trust_layer: TrustLayer;
+}
+
+

@@ -3,43 +3,58 @@ import logging
 import math
 from typing import Dict, Any
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 _elevation_cache: Dict[str, Dict[str, Any]] = {}
+CACHE_TTL_SECONDS = 86400
 
 class ElevationAdapter:
-    OPEN_ELEVATION_URL = "https://api.open-elevation.com/api/v1/lookup"
+    BASE_URL = settings.OPEN_METEO_ELEVATION_BASE_URL
+
+    @classmethod
+    async def get_elevation(cls, lat: float, lon: float) -> float:
+        """
+        Fast direct elevation lookup in meters via Open-Meteo Elevation API.
+        """
+        try:
+            async with httpx.AsyncClient(timeout=4.0) as client:
+                res = await client.get(cls.BASE_URL, params={"latitude": lat, "longitude": lon})
+                if res.status_code == 200:
+                    elevs = res.json().get("elevation", [])
+                    if elevs:
+                        return float(elevs[0])
+        except Exception as e:
+            logger.warning("Open-Meteo direct elevation lookup failed for %s,%s: %s", lat, lon, e)
+        return 750.0
 
     @classmethod
     async def get_terrain_profile(cls, lat: float, lon: float) -> Dict[str, Any]:
         """
-        Calculates terrain elevation, slope gradient (degrees), and aspect for spatial landslide susceptibility.
+        Calculates terrain elevation, slope gradient (degrees), and aspect for spatial landslide susceptibility
+        using high-accuracy Open-Meteo Elevation API sampling.
         """
         cache_key = f"{round(lat, 3)}_{round(lon, 3)}"
         if cache_key in _elevation_cache:
             return _elevation_cache[cache_key]
 
-        # Query central elevation and 4 surrounding points to compute numerical slope
+        # Query central elevation and 4 surrounding points (~500m offset) to compute numerical slope
         delta = 0.005 # ~500m offset
-        locations = [
-            {"latitude": lat, "longitude": lon},
-            {"latitude": lat + delta, "longitude": lon},
-            {"latitude": lat - delta, "longitude": lon},
-            {"latitude": lat, "longitude": lon + delta},
-            {"latitude": lat, "longitude": lon - delta},
-        ]
+        lats = f"{lat},{lat + delta},{lat - delta},{lat},{lat}"
+        lons = f"{lon},{lon},{lon},{lon + delta},{lon - delta}"
 
         try:
-            async with httpx.AsyncClient(timeout=4.0) as client:
-                res = await client.post(cls.OPEN_ELEVATION_URL, json={"locations": locations})
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                res = await client.get(cls.BASE_URL, params={"latitude": lats, "longitude": lons})
                 if res.status_code == 200:
-                    results = res.json().get("results", [])
+                    results = res.json().get("elevation", [])
                     if len(results) >= 5:
-                        elev_center = results[0].get("elevation", 750)
-                        elev_north = results[1].get("elevation", elev_center)
-                        elev_south = results[2].get("elevation", elev_center)
-                        elev_east = results[3].get("elevation", elev_center)
-                        elev_west = results[4].get("elevation", elev_center)
+                        elev_center = float(results[0])
+                        elev_north = float(results[1])
+                        elev_south = float(results[2])
+                        elev_east = float(results[3])
+                        elev_west = float(results[4])
 
                         # Compute spatial gradient (dz/dx and dz/dy)
                         dz_dx = (elev_east - elev_west) / (2 * delta * 111000 * math.cos(math.radians(lat)))
@@ -52,37 +67,14 @@ class ElevationAdapter:
                         aspect_deg = round((math.degrees(math.atan2(dz_dy, -dz_dx)) + 360) % 360, 1)
 
                         terrain_data = {
-                            "elevation_m": elev_center,
-                            "slope_degrees": max(3.0, min(65.0, slope_deg)),
+                            "elevation_m": round(elev_center, 1),
+                            "slope_degrees": max(1.0, min(65.0, slope_deg)),
                             "aspect_degrees": aspect_deg,
                             "terrain_type": "Steep Hill Slope" if slope_deg > 25 else ("Moderate Slope" if slope_deg > 12 else "Valley / Plain"),
-                            "source": "Open-Elevation SRTM Grid Live"
+                            "source": "Open-Meteo Elevation API"
                         }
                         _elevation_cache[cache_key] = terrain_data
                         return terrain_data
         except Exception as e:
-            logger.warning(f"Open-Elevation API query failed: {e}. Estimating from regional mountain belts.")
-
-        # Spatial Mountain Belt Fallback (Western Ghats & Himalayas)
-        is_himalayan = (26.0 <= lat <= 36.0 and 73.0 <= lon <= 96.0)
-        is_western_ghats = (8.0 <= lat <= 20.0 and 73.0 <= lon <= 77.0)
-
-        if is_himalayan:
-            elev = round(1800.0 + (abs(lat * 15 + lon * 25) % 1200), 1)
-            slope = round(28.0 + (abs(lat * 3 + lon * 7) % 18.0), 1)
-        elif is_western_ghats:
-            elev = round(850.0 + (abs(lat * 20 + lon * 15) % 750), 1)
-            slope = round(25.0 + (abs(lat * 5 + lon * 4) % 15.0), 1)
-        else:
-            elev = round(250.0 + (abs(lat + lon) % 300), 1)
-            slope = round(8.0 + (abs(lat * 2 + lon) % 10.0), 1)
-
-        terrain_data = {
-            "elevation_m": elev,
-            "slope_degrees": slope,
-            "aspect_degrees": 210.0,
-            "terrain_type": "Mountain Slope" if slope > 20 else "Gentle Terrain",
-            "source": "Spatial Topographic Fallback"
-        }
-        _elevation_cache[cache_key] = terrain_data
-        return terrain_data
+            logger.error("Open-Meteo Elevation API query failed for %s,%s: %s", lat, lon, e)
+            raise RuntimeError(f"Open-Meteo elevation service unavailable: {e}") from e

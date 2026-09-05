@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { TopAppBar } from '@/features/home/TopAppBar';
 import { HomeScreen } from '@/features/home/HomeScreen';
 import { MobileNavigation } from '@/features/home/MobileNavigation';
@@ -42,10 +42,21 @@ export default function Page() {
   // Device Frame Viewport Switcher (Showcase 390x844 vs Fluid Fullscreen)
   const [deviceFrameMode, setDeviceFrameMode] = useState<'phone' | 'fullscreen'>('phone');
 
-  // Dynamic Location State (Auto-detected from GPS)
-  const [lat, setLat] = useState<number>(28.6139); // Neutral India default until GPS resolves
-  const [lon, setLon] = useState<number>(77.2090);
-  const [locationName, setLocationName] = useState<string>('Detecting Live GPS...');
+  // Dynamic Location State (Sensible fallback: Wayanad headquarters)
+  const FALLBACK_LAT = 11.6854;
+  const FALLBACK_LON = 76.1320;
+  const FALLBACK_NAME = 'Wayanad, Kerala (Fallback)';
+
+  // Initial state: coordinates are NOT hardcoded as active location (Requirement 2 & 11)
+  const [lat, setLat] = useState<number | null>(null);
+  const [lon, setLon] = useState<number | null>(null);
+  const [locationName, setLocationName] = useState<string>('Detecting Live Location...');
+  const [locationStatus, setLocationStatus] = useState<
+    'prompt' | 'detecting' | 'active' | 'denied' | 'unavailable' | 'unsupported' | 'manual'
+  >('prompt');
+  const [permissionState, setPermissionState] = useState<'prompt' | 'granted' | 'denied' | 'unknown'>('unknown');
+  const [isGpsActive, setIsGpsActive] = useState<boolean>(false);
+  const [isFallback, setIsFallback] = useState<boolean>(false);
   const [gpsLocked, setGpsLocked] = useState(false);
 
   // Time Horizon Forecast State (SIH Feature)
@@ -71,45 +82,167 @@ export default function Page() {
     }
   }, [isDarkMode]);
 
-  // Battery-Saving Initial GPS Detection with Backend Reverse Geocoding
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const userLat = pos.coords.latitude;
-          const userLon = pos.coords.longitude;
-          setLat(userLat);
-          setLon(userLon);
-          setGpsLocked(true);
-
-          try {
-            const res = await fetchApi<{ success: boolean; data: any }>(
-              `/geocoding/reverse?latitude=${userLat}&longitude=${userLon}`
-            );
-            if (res && res.data && res.data.formatted_name) {
-              setLocationName(res.data.formatted_name);
-            } else if (res && res.data && res.data.district) {
-              setLocationName(`${res.data.district}, ${res.data.state || 'India'}`);
-            } else {
-              setLocationName(`GPS ${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°E`);
-            }
-          } catch {
-            setLocationName(`GPS ${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°E`);
-          }
-        },
-        () => {
-          // Fallback to Western Ghats sector if user denies GPS
-          setLat(11.6854);
-          setLon(76.1320);
-          setLocationName('Wayanad Sector, Kerala');
-        },
-        { timeout: 8000, enableHighAccuracy: true }
-      );
+  // Dynamic Browser GPS Geolocation with Multi-Stage Accuracy & Reverse Geocoding
+  const requestCurrentLocation = useCallback(async () => {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+      setLocationStatus('unsupported');
+      setIsGpsActive(false);
+      setIsFallback(true);
+      setLat(FALLBACK_LAT);
+      setLon(FALLBACK_LON);
+      setLocationName(FALLBACK_NAME);
+      return;
     }
-  }, []);
+
+    setLocationStatus('detecting');
+    setLocationName('Acquiring Live GPS...');
+
+    const handleSuccess = async (pos: GeolocationPosition) => {
+      const userLat = pos.coords.latitude;
+      const userLon = pos.coords.longitude;
+      setLat(userLat);
+      setLon(userLon);
+      setIsGpsActive(true);
+      setIsFallback(false);
+      setGpsLocked(true);
+      setLocationStatus('active');
+      setPermissionState('granted');
+
+      try {
+        const res = await fetchApi<{ success: boolean; data: any }>(
+          `/geocoding/reverse?latitude=${userLat}&longitude=${userLon}`
+        );
+        if (res && res.data && res.data.formatted_name) {
+          setLocationName(res.data.formatted_name);
+        } else if (res && res.data && res.data.district) {
+          setLocationName(`${res.data.district}, ${res.data.state || 'India'}`);
+        } else {
+          setLocationName(`${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°E`);
+        }
+      } catch {
+        // Clean coordinate representation if reverse-geocoding endpoint is unreachable
+        setLocationName(`${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°E`);
+      }
+    };
+
+    const handleFailure = (error: GeolocationPositionError) => {
+      setIsGpsActive(false);
+      setGpsLocked(false);
+      setIsFallback(true);
+      setLat(FALLBACK_LAT);
+      setLon(FALLBACK_LON);
+
+      if (error.code === error.PERMISSION_DENIED) {
+        setLocationStatus('denied');
+        setPermissionState('denied');
+        setLocationName(FALLBACK_NAME);
+      } else {
+        setLocationStatus('unavailable');
+        setLocationName(FALLBACK_NAME);
+      }
+    };
+
+    // First attempt high accuracy (satellites/GNSS); if that times out or fails (common on PC/laptops without GPS chip),
+    // immediately fall back to standard accuracy (Wi-Fi/IP geolocation)
+    navigator.geolocation.getCurrentPosition(
+      handleSuccess,
+      (err) => {
+        if (err.code !== err.PERMISSION_DENIED) {
+          navigator.geolocation.getCurrentPosition(
+            handleSuccess,
+            handleFailure,
+            { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 }
+          );
+        } else {
+          handleFailure(err);
+        }
+      },
+      { timeout: 7000, enableHighAccuracy: true, maximumAge: 0 }
+    );
+  }, [FALLBACK_LAT, FALLBACK_LON, FALLBACK_NAME]);
+
+  // Permission State Management and Initial GPS Request (Requirement 2 & 3)
+  useEffect(() => {
+    let isMounted = true;
+
+    async function checkPermissionAndInit() {
+      if (typeof window === 'undefined') return;
+
+      if (!('geolocation' in navigator)) {
+        setLocationStatus('unsupported');
+        setIsFallback(true);
+        setLat(FALLBACK_LAT);
+        setLon(FALLBACK_LON);
+        setLocationName(FALLBACK_NAME);
+        return;
+      }
+
+      if (navigator.permissions && navigator.permissions.query) {
+        try {
+          const perm = await navigator.permissions.query({ name: 'geolocation' });
+          if (!isMounted) return;
+
+          const currentPermState = perm.state as 'prompt' | 'granted' | 'denied';
+          setPermissionState(currentPermState);
+
+          perm.onchange = () => {
+            if (!isMounted) return;
+            const updatedState = perm.state as 'prompt' | 'granted' | 'denied';
+            setPermissionState(updatedState);
+            if (updatedState === 'granted') {
+              requestCurrentLocation();
+            } else if (updatedState === 'denied') {
+              setIsGpsActive(false);
+              setIsFallback(true);
+              setLocationStatus('denied');
+              setLat(FALLBACK_LAT);
+              setLon(FALLBACK_LON);
+              setLocationName(FALLBACK_NAME);
+            } else if (updatedState === 'prompt') {
+              setLocationStatus('prompt');
+              setLocationName('Location Permission Needed');
+            }
+          };
+
+          if (currentPermState === 'granted') {
+            requestCurrentLocation();
+            return;
+          } else if (currentPermState === 'denied') {
+            setIsGpsActive(false);
+            setIsFallback(true);
+            setLocationStatus('denied');
+            setLat(FALLBACK_LAT);
+            setLon(FALLBACK_LON);
+            setLocationName(FALLBACK_NAME);
+            return;
+          } else if (currentPermState === 'prompt') {
+            // Permission has not been granted or denied yet.
+            // Requirement 2: Do NOT automatically use the Wayanad fallback if GPS permission has not yet been requested.
+            setLocationStatus('prompt');
+            setLocationName('Location Permission Needed');
+            // Request location to trigger browser permission dialog
+            requestCurrentLocation();
+            return;
+          }
+        } catch (e) {
+          console.warn('Permissions query notice:', e);
+        }
+      }
+
+      // Fallback if navigator.permissions is not supported
+      requestCurrentLocation();
+    }
+
+    checkPermissionAndInit();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [requestCurrentLocation, FALLBACK_LAT, FALLBACK_LON, FALLBACK_NAME]);
 
   // Fetch Live Shelters from Backend Overpass
   useEffect(() => {
+    if (lat === null || lon === null) return;
     async function loadShelters() {
       try {
         const res = await fetchApi<{ success: boolean; data: ShelterResource[] }>(
@@ -155,6 +288,9 @@ export default function Page() {
     setLocationName(name);
     setLat(newLat);
     setLon(newLon);
+    setIsGpsActive(false);
+    setIsFallback(false);
+    setLocationStatus('manual');
   };
 
   const handleCreateReport = async (category: string, description: string, photoUrl: string) => {
@@ -164,8 +300,8 @@ export default function Page() {
         body: JSON.stringify({
           category,
           description,
-          latitude: lat,
-          longitude: lon,
+          latitude: lat ?? FALLBACK_LAT,
+          longitude: lon ?? FALLBACK_LON,
           location_name: locationName,
           photo_url: photoUrl,
         }),
@@ -180,8 +316,8 @@ export default function Page() {
         reporter_name: 'Citizen (You)',
         category,
         description,
-        latitude: lat,
-        longitude: lon,
+        latitude: lat ?? FALLBACK_LAT,
+        longitude: lon ?? FALLBACK_LON,
         location_name: locationName,
         photo_url: photoUrl,
         status: 'Pending',
@@ -273,7 +409,12 @@ export default function Page() {
               longitude={lon}
               appMode={appMode}
               isOffline={isOffline}
+              isGpsActive={isGpsActive}
+              isFallback={isFallback}
+              locationStatus={locationStatus}
+              permissionState={permissionState}
               onSelectLocation={handleSelectLocation}
+              onRefreshGPS={requestCurrentLocation}
               onOpenSOS={() => setIsSOSOpen(true)}
               lang={lang}
             />
@@ -283,8 +424,8 @@ export default function Page() {
           {activeTab === 'map' && (
             <div className="w-full h-[calc(100vh-140px)] sm:h-[700px] relative pb-20">
               <InteractiveMap
-                latitude={lat}
-                longitude={lon}
+                latitude={lat ?? FALLBACK_LAT}
+                longitude={lon ?? FALLBACK_LON}
                 locationName={locationName}
                 onLocationSelect={(newLat, newLon, name) => handleSelectLocation(name || 'Selected Location', newLat, newLon)}
                 onSearchOpen={() => setIsLocationSearchOpen(true)}
@@ -477,14 +618,15 @@ export default function Page() {
         isOpen={isLocationSearchOpen}
         onClose={() => setIsLocationSearchOpen(false)}
         onSelectLocation={handleSelectLocation}
+        onUseCurrentGPS={requestCurrentLocation}
         lang={lang}
       />
 
       {/* 6. Citizen Report Camera Modal */}
       {isReportModalOpen && (
         <CitizenReportModal
-          currentLat={lat}
-          currentLon={lon}
+          currentLat={lat ?? FALLBACK_LAT}
+          currentLon={lon ?? FALLBACK_LON}
           locationName={locationName}
           onClose={() => setIsReportModalOpen(false)}
           onSubmitReport={handleCreateReport}

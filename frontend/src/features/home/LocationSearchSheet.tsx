@@ -8,6 +8,7 @@ interface LocationSearchSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectLocation: (name: string, lat: number, lon: number) => void;
+  onUseCurrentGPS?: () => void;
   lang: 'en' | 'hi';
 }
 
@@ -19,10 +20,23 @@ interface SearchResultItem {
   type?: string;
 }
 
+interface GeocodingResultItem {
+  name?: string;
+  formatted_name?: string;
+  city?: string;
+  district?: string;
+  state?: string;
+  latitude: number;
+  longitude: number;
+}
+
+type GeocodingSearchResponse = GeocodingResultItem[] | { success?: boolean; data?: GeocodingResultItem[] };
+
 export const LocationSearchSheet: React.FC<LocationSearchSheetProps> = ({
   isOpen,
   onClose,
   onSelectLocation,
+  onUseCurrentGPS,
   lang,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,12 +63,11 @@ export const LocationSearchSheet: React.FC<LocationSearchSheetProps> = ({
     const timer = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const res = await fetchApi<{ success: boolean; data: any[] }>(
-          `/geocoding/search?q=${encodeURIComponent(searchTerm)}&limit=7`
-        );
-        if (res && res.data && res.data.length > 0) {
-          const mapped: SearchResultItem[] = res.data.map((item: any) => ({
-            name: item.name || item.formatted_name,
+        const res = await fetchApi<GeocodingSearchResponse>(`/geocoding/search?q=${encodeURIComponent(searchTerm)}&limit=7`);
+        const items = Array.isArray(res) ? res : res.data || [];
+        if (items.length > 0) {
+          const mapped: SearchResultItem[] = items.map((item) => ({
+            name: item.name || item.formatted_name || `Location ${item.latitude.toFixed(3)}, ${item.longitude.toFixed(3)}`,
             sub: [item.city, item.district, item.state].filter(Boolean).join(', ') || 'India',
             lat: item.latitude,
             lon: item.longitude,
@@ -94,7 +107,7 @@ export const LocationSearchSheet: React.FC<LocationSearchSheetProps> = ({
               {lang === 'hi' ? 'आप कहाँ देखना चाहते हैं?' : 'Search Any Location in India'}
             </h3>
             <p className="text-[11px] text-gray-500">
-              {lang === 'hi' ? 'वास्तविक समय भू-स्थानिक खोज (Photon OSM)' : 'Live OpenStreetMap Autocomplete & Geocoding'}
+              {lang === 'hi' ? 'वास्तविक समय भू-स्थानिक खोज (Open-Meteo & OSM)' : 'Live Open-Meteo & OpenStreetMap Geocoding'}
             </p>
           </div>
           <button
@@ -124,6 +137,25 @@ export const LocationSearchSheet: React.FC<LocationSearchSheetProps> = ({
             <RefreshCw className="w-4 h-4 text-gray-400 animate-spin absolute right-3.5 top-4" />
           )}
         </div>
+
+        {/* Quick GPS Location Button */}
+        <button
+          onClick={() => {
+            if (onUseCurrentGPS) {
+              onUseCurrentGPS();
+              onClose();
+            }
+          }}
+          className="w-full py-2.5 px-3.5 bg-[#EBF3FA] dark:bg-[#1B2738] hover:bg-[#DDF0FD] dark:hover:bg-[#24344B] border border-[#D0E2F2] dark:border-[#24344B] rounded-2xl text-xs text-[#0F4C81] dark:text-[#81D4FA] font-bold flex items-center justify-between transition-colors cursor-pointer"
+        >
+          <div className="flex items-center space-x-2">
+            <Navigation className="w-4 h-4 text-[#0F4C81] dark:text-[#81D4FA]" />
+            <span>{lang === 'hi' ? 'वर्तमान जीपीएस स्थान का उपयोग करें' : 'Use Current Live GPS Location'}</span>
+          </div>
+          <span className="text-[10px] text-[#2E7D32] dark:text-[#81C784] bg-white dark:bg-[#131D2A] px-2 py-0.5 rounded-full border border-[#A5D6A7] dark:border-[#2E7D32] font-bold">
+            Live GPS
+          </span>
+        </button>
 
         {/* Quick Suggestions List */}
         <div className="space-y-1.5 pt-1">

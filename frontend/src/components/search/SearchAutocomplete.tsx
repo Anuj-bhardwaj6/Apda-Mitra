@@ -31,6 +31,7 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isAcquiringGPS, setIsAcquiringGPS] = useState(false);
 
   const defaultRecent = [
     { name: 'Wayanad District, Kerala', lat: 11.6854, lon: 76.1320, type: 'Recent' },
@@ -78,6 +79,36 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   const handleSelect = (lat: number, lon: number, name: string) => {
     onSelectLocation(lat, lon, name);
     onClose();
+  };
+
+  const handleUseLiveGPS = () => {
+    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+      setIsAcquiringGPS(true);
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const uLat = pos.coords.latitude;
+          const uLon = pos.coords.longitude;
+          let name = `GPS ${uLat.toFixed(4)}°N, ${uLon.toFixed(4)}°E`;
+          try {
+            const res = await fetchApi<{ success: boolean; data: any }>(
+              `/geocoding/reverse?latitude=${uLat}&longitude=${uLon}`
+            );
+            if (res && res.data && res.data.formatted_name) {
+              name = res.data.formatted_name;
+            }
+          } catch {}
+          setIsAcquiringGPS(false);
+          handleSelect(uLat, uLon, name);
+        },
+        () => {
+          setIsAcquiringGPS(false);
+          handleSelect(11.6854, 76.1320, 'Wayanad, Kerala (Fallback Location)');
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    } else {
+      handleSelect(11.6854, 76.1320, 'Wayanad, Kerala (Fallback Location)');
+    }
   };
 
   return (
@@ -141,15 +172,20 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
 
           {/* Quick GPS Location Button */}
           <button
-            onClick={() => handleSelect(11.6854, 76.1320, 'Current Location (GPS)')}
-            className="w-full py-2.5 px-3 bg-[#EBF3FA] hover:bg-[#DDF0FD] border border-[#D0E2F2] rounded-2xl text-xs text-[#0F4C81] font-bold flex items-center justify-between transition-colors cursor-pointer"
+            onClick={handleUseLiveGPS}
+            disabled={isAcquiringGPS}
+            className="w-full py-2.5 px-3 bg-[#EBF3FA] hover:bg-[#DDF0FD] border border-[#D0E2F2] rounded-2xl text-xs text-[#0F4C81] font-bold flex items-center justify-between transition-colors cursor-pointer disabled:opacity-60"
           >
             <div className="flex items-center space-x-2">
-              <Compass className="w-4 h-4 text-[#0F4C81]" />
-              <span>{lang === 'hi' ? 'वर्तमान जीपीएस स्थान का उपयोग करें' : 'Use Current GPS Location'}</span>
+              <Compass className={`w-4 h-4 text-[#0F4C81] ${isAcquiringGPS ? 'animate-spin' : ''}`} />
+              <span>
+                {isAcquiringGPS
+                  ? (lang === 'hi' ? 'जीपीएस स्थान प्राप्त कर रहा है...' : 'Acquiring GPS Location...')
+                  : (lang === 'hi' ? 'वर्तमान जीपीएस स्थान का उपयोग करें' : 'Use Current GPS Location')}
+              </span>
             </div>
             <span className="text-[10px] text-[#2E7D32] bg-white px-2 py-0.5 rounded-full border border-[#A5D6A7]">
-              Accurate ±4m
+              {isAcquiringGPS ? 'Locating...' : 'Live GPS'}
             </span>
           </button>
         </div>

@@ -1,100 +1,155 @@
+import { fetchApi, WeatherSummary } from '@/lib/api';
 import { WeatherData } from '@/shared/types';
 import { DisasterAppMode } from '@/shared/types/disaster';
-import { OpenMeteoAdapter } from '@/adapters/ExternalAdapters';
+import { EnvironmentalRepository } from '@/repositories/EnvironmentalRepository';
+
+function buildPrediction(weather: WeatherSummary, mode: DisasterAppMode): string {
+  if (mode === 'disaster' || weather.rainfall_24h_mm >= 50) {
+    return 'Heavy rainfall risk is elevated through the next forecast window.';
+  }
+
+  if (weather.rainfall_24h_mm >= 10) {
+    return 'Rain is likely in the next few hours. Keep travel plans flexible.';
+  }
+
+  if (weather.humidity_pct > 85) {
+    return 'Humid and overcast conditions may persist around this area.';
+  }
+
+  return 'Conditions look stable in the short-term forecast.';
+}
+
+function iconForHour(precipMm: number, rainProb: number): string {
+  if (precipMm >= 8 || rainProb >= 85) return 'heavy-rain';
+  if (precipMm > 0 || rainProb >= 45) return 'rain';
+  return 'cloud';
+}
+
+function formatHour(hour: number, index: number, timeIso?: string): string {
+  if (index === 0) return 'Now';
+  if (timeIso) {
+    try {
+      const d = new Date(timeIso);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleTimeString([], { hour: 'numeric', hour12: true });
+      }
+    } catch {
+      // Fallback to clock calculation
+    }
+  }
+  if (hour !== undefined && hour >= 0 && hour <= 24) {
+    const h = hour % 24;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12} ${ampm}`;
+  }
+  return `+${index}h`;
+}
+
+function formatLastUpdated(isoString?: string): string {
+  if (!isoString) {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return 'Just now';
+  }
+}
+
+function mapWeatherSummary(
+  weather: WeatherSummary, 
+  mode: DisasterAppMode, 
+  lat: number, 
+  lon: number
+): WeatherData {
+  const hourly = (weather.hourly_forecast || []).slice(0, 12).map((item, idx) => {
+    const rainProb = item.precip_probability_pct ?? Math.min(95, Math.round(item.precip_mm * 18));
+    return {
+      time: formatHour(item.hour, idx, item.time_iso),
+      temp: Math.round(item.temp_c),
+      icon: iconForHour(item.precip_mm, rainProb),
+      rainProb,
+      condition: item.condition,
+    };
+  });
+
+  const dayNames = ['Today', 'Tomorrow', 'Day 3'];
+  const daily = (weather.daily_forecast || []).map((d, i) => {
+    const prob = d.precip_probability_max ?? Math.min(95, Math.round(d.precip_sum * 12));
+    return {
+      dayLabel: dayNames[i] || `Day ${i + 1}`,
+      tempMax: Math.round(d.temp_max),
+      tempMin: Math.round(d.temp_min),
+      precipSum: Math.round(d.precip_sum * 10) / 10,
+      rainProb: prob,
+      condition: d.condition || 'Variable Clouds',
+      icon: iconForHour(d.precip_sum, prob),
+    };
+  });
+
+  const temp = Math.round(weather.temperature_c);
+  const prediction = buildPrediction(weather, mode);
+
+  return {
+    temperatureC: temp,
+    condition: weather.weather_condition,
+    conditionHi: weather.weather_condition,
+    feelsLikeC: Math.round(weather.feels_like_c ?? weather.temperature_c),
+    humanPredictionSentence: prediction,
+    humanPredictionSentenceHi: prediction,
+    humidityPct: weather.humidity_pct,
+    windSpeedKmh: Math.round(weather.wind_speed_kmh),
+    rainfallTodayMm: weather.rainfall_24h_mm,
+    uvIndex: Math.round(weather.uv_index ?? 0),
+    surfacePressureHpa: Math.round(weather.surface_pressure_hpa),
+    soilMoisturePct: Math.round(weather.soil_moisture_pct),
+    soilMoistureSurface: weather.soil_moisture_surface,
+    soilMoistureRootzone: weather.soil_moisture_rootzone,
+    soilSaturationStatus: weather.soil_saturation_status || (weather.soil_moisture_pct > 70 ? 'Critical' : 'Normal'),
+    rainfallAlertTier: weather.rainfall_alert_tier || 'Normal / Light',
+    isLive: true,
+    source: weather.source || 'Open-Meteo Multi-API',
+    latitude: lat,
+    longitude: lon,
+    updatedAt: weather.trust_layer?.updatedAt || new Date().toISOString(),
+    lastUpdatedTime: formatLastUpdated(weather.trust_layer?.updatedAt),
+    hourly: hourly.length > 0
+      ? hourly
+      : [{ time: 'Now', temp: temp, icon: 'cloud', rainProb: 0 }],
+    daily: daily.length > 0 ? daily : undefined,
+  };
+}
 
 export class WeatherRepository {
+  /**
+   * Fetches real-time weather and environmental telemetry from live Open-Meteo APIs.
+   * Throws on network/API failure so callers render a genuine error state rather than fake values.
+   */
   static async getWeather(lat: number, lon: number, mode: DisasterAppMode): Promise<WeatherData> {
-    // 1. Try real OpenMeteo API
-    try {
-      const live = await OpenMeteoAdapter.fetchCurrent(lat, lon);
-      if (live && live.current) {
-        const cur = live.current;
-        const temp = Math.round(cur.temperature_2m);
-        const feels = Math.round(cur.apparent_temperature);
-        const humidity = Math.round(cur.relative_humidity_2m);
-        const wind = Math.round(cur.wind_speed_10m);
-        const rain = cur.precipitation || 2.1;
-
-        let sentence = 'Rain expected until 5 PM.';
-        let sentenceHi = 'शाम 5 बजे तक हल्की से मध्यम वर्षा का अनुमान है।';
-        let condition = 'Light Rain';
-        let conditionHi = 'हल्की बारिश';
-
-        if (mode === 'normal') {
-          sentence = 'Clear conditions through tonight.';
-          sentenceHi = 'रात भर मौसम साफ और शांत रहने का अनुमान है।';
-          condition = 'Partly Cloudy';
-          conditionHi = 'आंशिक बादल';
-        } else if (mode === 'disaster') {
-          sentence = 'Severe storm & intense downpour until midnight.';
-          sentenceHi = 'मध्यरात्रि तक अत्यधिक मूसलाधार बारिश और आंधी की संभावना।';
-          condition = 'Severe Monsoon Storm';
-          conditionHi = 'भीषण मानसूनी तूफान';
-        }
-
-        return {
-          temperatureC: temp,
-          condition,
-          conditionHi,
-          feelsLikeC: feels,
-          humanPredictionSentence: sentence,
-          humanPredictionSentenceHi: sentenceHi,
-          humidityPct: humidity,
-          windSpeedKmh: wind,
-          rainfallTodayMm: rain > 0 ? rain * 10 : 84.5,
-          uvIndex: mode === 'normal' ? 5 : 2,
-          hourly: [
-            { time: 'Now', temp, icon: 'rain', rainProb: 80 },
-            { time: '2 PM', temp: temp + 1, icon: 'rain', rainProb: 90 },
-            { time: '3 PM', temp, icon: 'heavy-rain', rainProb: 95 },
-            { time: '4 PM', temp: temp - 1, icon: 'rain', rainProb: 85 },
-            { time: '5 PM', temp: temp - 2, icon: 'cloud', rainProb: 40 },
-            { time: '6 PM', temp: temp - 2, icon: 'cloud', rainProb: 20 },
-          ],
-        };
-      }
-    } catch {}
-
-    // Fallback Realistic Weather Model
-    if (mode === 'normal') {
-      return {
-        temperatureC: 25,
-        condition: 'Clear & Pleasant',
-        conditionHi: 'साफ एवं सुहावना',
-        feelsLikeC: 26,
-        humanPredictionSentence: 'Pleasant mountain conditions all day.',
-        humanPredictionSentenceHi: 'पूरे दिन सुखद और सामान्य मौसम रहेगा।',
-        humidityPct: 65,
-        windSpeedKmh: 9,
-        rainfallTodayMm: 0.8,
-        uvIndex: 5,
-        hourly: [
-          { time: 'Now', temp: 25, icon: 'sun', rainProb: 5 },
-          { time: '2 PM', temp: 27, icon: 'sun', rainProb: 5 },
-          { time: '4 PM', temp: 26, icon: 'cloud', rainProb: 10 },
-          { time: '6 PM', temp: 23, icon: 'cloud', rainProb: 15 },
-        ],
-      };
+    const [weatherRes, env] = await Promise.all([
+      fetchApi<WeatherSummary>(`/weather/forecast?latitude=${lat}&longitude=${lon}`),
+      EnvironmentalRepository.getCombinedEnvironmental(lat, lon).catch(() => null),
+    ]);
+    const mapped = mapWeatherSummary(weatherRes, mode, lat, lon);
+    if (env) {
+      mapped.elevationM = env.elevationM;
+      mapped.slopeDegrees = env.slopeDegrees;
+      mapped.terrainType = env.terrainType;
+      mapped.usAqi = env.usAqi;
+      mapped.europeanAqi = env.europeanAqi;
+      mapped.aqiCategory = env.aqiCategory;
+      mapped.aqiColor = env.aqiColor;
+      mapped.healthAdvisory = env.healthAdvisory;
+      mapped.pm25 = env.pm25;
+      mapped.pm10 = env.pm10;
+      mapped.riverDischargeM3s = env.riverDischargeM3s;
+      mapped.dischargeTrend = env.dischargeTrend;
+      mapped.floodRiskLevel = env.floodRiskLevel;
+      mapped.floodAlertTier = env.floodAlertTier;
     }
-
-    return {
-      temperatureC: 23,
-      condition: 'Light Rain',
-      conditionHi: 'हल्की बारिश',
-      feelsLikeC: 24,
-      humanPredictionSentence: 'Rain expected until 5 PM.',
-      humanPredictionSentenceHi: 'शाम 5 बजे तक हल्की वर्षा का अनुमान है।',
-      humidityPct: 89,
-      windSpeedKmh: 14,
-      rainfallTodayMm: 84.5,
-      uvIndex: 2,
-      hourly: [
-        { time: 'Now', temp: 23, icon: 'rain', rainProb: 85 },
-        { time: '2 PM', temp: 24, icon: 'rain', rainProb: 90 },
-        { time: '3 PM', temp: 23, icon: 'heavy-rain', rainProb: 95 },
-        { time: '4 PM', temp: 22, icon: 'rain', rainProb: 75 },
-        { time: '5 PM', temp: 21, icon: 'cloud', rainProb: 35 },
-      ],
-    };
+    return mapped;
   }
 }

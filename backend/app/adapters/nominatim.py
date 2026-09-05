@@ -62,10 +62,9 @@ class NominatimAdapter:
                     postcode = address.get("postcode") or ""
 
                     # Human-friendly display hierarchy
-                    parts = [p for p in [village, taluk, district, state] if p and p not in parts if 'parts' in locals() or p]
                     deduped_parts = []
-                    for p in parts:
-                        if p not in deduped_parts:
+                    for p in [village, taluk, district, state]:
+                        if p and p not in deduped_parts:
                             deduped_parts.append(p)
 
                     formatted = ", ".join(deduped_parts) if deduped_parts else data.get("display_name", f"{lat:.3f}°N, {lon:.3f}°E")
@@ -89,15 +88,15 @@ class NominatimAdapter:
             logger.warning(f"Nominatim reverse geocode error: {e}")
 
         fallback = {
-            "formatted_name": f"Wayanad Sector ({lat:.3f}°N, {lon:.3f}°E)",
-            "village": "Chooralmala",
-            "taluk": "Vythiri",
-            "district": "Wayanad",
-            "state": "Kerala",
+            "formatted_name": f"{lat:.4f}°N, {lon:.4f}°E",
+            "village": "",
+            "taluk": "",
+            "district": f"{lat:.2f}°, {lon:.2f}°",
+            "state": "",
             "country": "India",
-            "postcode": "673577",
+            "postcode": "",
             "latitude": lat,
             "longitude": lon,
-            "source": "Spatial Default Fallback"
+            "source": "Coordinates (Reverse Geocode Unavailable)"
         }
         return fallback

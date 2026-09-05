@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Query
+﻿from fastapi import APIRouter, Query
 from typing import List, Dict, Any
-from app.services.geocoding_service import search_places, reverse_geocode, get_structured_location
+from app.services.geocoding_service import search_places, get_structured_location
 
 router = APIRouter(prefix="/geocoding", tags=["Geocoding & Location Intelligence"])
 
@@ -22,9 +22,10 @@ async def reverse_geocode_endpoint(
 
 @router.get("/search")
 async def search_places_endpoint(
-    q: str = Query(..., min_length=1, description="Query string across Indian locations")
+    q: str = Query(..., min_length=1, description="Query string across Indian locations"),
+    limit: int = Query(8, ge=1, le=20)
 ) -> List[Dict[str, Any]]:
     """
-    Fuzzy place search via Photon OSM across Indian cities, villages, hospitals, shelters, and districts.
+    Place search via Open-Meteo Geocoding API with existing OSM fallbacks.
     """
-    return await search_places(q)
+    return await search_places(q, limit=limit)

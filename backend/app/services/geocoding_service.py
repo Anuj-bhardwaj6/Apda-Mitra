@@ -1,5 +1,6 @@
-import logging
+﻿import logging
 from typing import List, Dict, Any
+from app.adapters.open_meteo_geocoding import OpenMeteoGeocodingAdapter
 from app.adapters.nominatim import NominatimAdapter
 from app.adapters.photon import PhotonAdapter
 
@@ -18,8 +19,12 @@ async def get_structured_location(lat: float, lon: float) -> Dict[str, Any]:
     """
     return await NominatimAdapter.reverse_geocode(lat, lon)
 
-async def search_places(query: str) -> List[Dict[str, Any]]:
+async def search_places(query: str, limit: int = 8) -> List[Dict[str, Any]]:
     """
-    Service Layer: Performs fuzzy place search across India via PhotonAdapter.
+    Service Layer: Performs Indian place search via Open-Meteo first,
+    then falls back to Photon/Nominatim through PhotonAdapter.
     """
-    return await PhotonAdapter.search(query)
+    open_meteo_results = await OpenMeteoGeocodingAdapter.search(query, limit=limit)
+    if open_meteo_results:
+        return open_meteo_results
+    return await PhotonAdapter.search(query, limit=limit)

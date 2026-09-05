@@ -2,7 +2,7 @@ import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Apda Mitra (आपदा मित्र)"
+    PROJECT_NAME: str = "Apda Mitra (à¤†à¤ªà¤¦à¤¾ à¤®à¤¿à¤¤à¥à¤°)"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
@@ -19,7 +19,14 @@ class Settings(BaseSettings):
     
     # External Live APIs
     OPEN_METEO_BASE_URL: str = "https://api.open-meteo.com/v1/forecast"
+    OPEN_METEO_GEOCODING_BASE_URL: str = "https://geocoding-api.open-meteo.com/v1/search"
+    OPEN_METEO_FLOOD_BASE_URL: str = "https://flood-api.open-meteo.com/v1/flood"
+    OPEN_METEO_AIR_QUALITY_BASE_URL: str = "https://air-quality-api.open-meteo.com/v1/air-quality"
+    OPEN_METEO_ELEVATION_BASE_URL: str = "https://api.open-meteo.com/v1/elevation"
+    OPEN_METEO_ARCHIVE_BASE_URL: str = "https://archive-api.open-meteo.com/v1/archive"
+    OPEN_METEO_ENSEMBLE_BASE_URL: str = "https://ensemble-api.open-meteo.com/v1/ensemble"
     NOMINATIM_BASE_URL: str = "https://nominatim.openstreetmap.org"
+
     
     # Default Landslide Threshold Config (configurable & extensible)
     LANDSLIDE_RAINFALL_24H_THRESHOLD_MM: float = 80.0
