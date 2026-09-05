@@ -201,8 +201,19 @@ body {
   filter: saturate(1.06) contrast(1.02);
 }
 
-.dark .leaflet-tile {
+.dark .leaflet-tile:not(.no-invert-tile) {
   filter: brightness(0.7) invert(1) contrast(2.2) hue-rotate(195deg) saturate(0.3) brightness(0.85);
+}
+
+/* Custom GIS Feature Popups */
+.gis-feature-popup .leaflet-popup-content-wrapper {
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 4px;
+}
+.gis-feature-popup .leaflet-popup-content {
+  margin: 10px 12px;
+  line-height: 1.4;
 }
 
 /* Leaflet Zoom Control Modern Google Maps Style */

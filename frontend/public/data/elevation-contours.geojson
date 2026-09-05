@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "name": "Apda-Mitra Elevation Contours",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ele-01",
+        "name": "1200m High Mountain Ridge Contour",
+        "nameHi": "1200m उच्च पर्वतीय समोच्च रेखा",
+        "category": "Elevation Contour",
+        "elevation_m": 1200,
+        "risk_level": "info",
+        "stroke_weight": 2.2,
+        "stroke_color": "#78350F",
+        "description": "Peak crest contour line separating catchment basins. Extreme rainfall susceptibility.",
+        "source": "Survey of India Topographic Survey"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [76.0900, 11.7100],
+          [76.1050, 11.7200],
+          [76.1200, 11.7350],
+          [76.1400, 11.7400]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ele-02",
+        "name": "800m Escarpment Slope Contour",
+        "nameHi": "800m ढलान समोच्च रेखा",
+        "category": "Elevation Contour",
+        "elevation_m": 800,
+        "risk_level": "info",
+        "stroke_weight": 1.8,
+        "stroke_color": "#92400E",
+        "description": "Mid-elevation tea plantation slope gradient.",
+        "source": "Survey of India Topographic Survey"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [76.1000, 11.6850],
+          [76.1150, 11.6950],
+          [76.1300, 11.7050],
+          [76.1550, 11.7120]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ele-03",
+        "name": "500m Valley Floor Contour",
+        "nameHi": "500m घाटी समोच्च रेखा",
+        "category": "Elevation Contour",
+        "elevation_m": 500,
+        "risk_level": "info",
+        "stroke_weight": 1.5,
+        "stroke_color": "#65A30D",
+        "description": "Inhabited valley floor contour receiving runoff from slopes.",
+        "source": "Survey of India Topographic Survey"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [76.1100, 11.6600],
+          [76.1250, 11.6700],
+          [76.1400, 11.6800],
+          [76.1650, 11.6880]
+        ]
+      }
+    }
+  ]
+}

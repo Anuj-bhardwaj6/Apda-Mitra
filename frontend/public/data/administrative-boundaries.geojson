@@ -1,0 +1,60 @@
+{
+  "type": "FeatureCollection",
+  "name": "Apda-Mitra Administrative Boundaries",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "adm-01",
+        "name": "Vythiri Taluk Administrative Boundary",
+        "nameHi": "वैथिरी तालुका प्रशासनिक सीमा",
+        "category": "Administrative Boundary",
+        "risk_level": "info",
+        "stroke_weight": 2.5,
+        "dash_array": "8, 5",
+        "description": "Sub-district administrative perimeter administered by Tehsildar & Incident Commander.",
+        "source": "Survey of India & Revenue Dept",
+        "updated_at": "District Collectorate"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [76.0600, 11.6200],
+          [76.0800, 11.6600],
+          [76.1050, 11.7200],
+          [76.1600, 11.7450],
+          [76.1950, 11.7100],
+          [76.1800, 11.6400],
+          [76.1100, 11.6100],
+          [76.0600, 11.6200]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "adm-02",
+        "name": "Meppadi Grama Panchayat Boundary",
+        "nameHi": "मेप्पाडी ग्राम पंचायत सीमा",
+        "category": "Administrative Boundary",
+        "risk_level": "info",
+        "stroke_weight": 2,
+        "dash_array": "4, 4",
+        "description": "Local civic body disaster response boundary enclosing Wards 10 through 14.",
+        "source": "Local Self Government Dept",
+        "updated_at": "District Collectorate"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [76.1100, 11.6500],
+          [76.1200, 11.6900],
+          [76.1600, 11.7050],
+          [76.1650, 11.6600],
+          [76.1100, 11.6500]
+        ]
+      }
+    }
+  ]
+}

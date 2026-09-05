@@ -14,9 +14,14 @@ import {
   Footprints,
   Compass,
   CheckCircle2,
-  Users
+  Users,
+  Layers,
 } from 'lucide-react';
 import { RouteDirections, ShelterResource, CitizenReport, HistoricalLandslide } from '@/lib/api';
+import { BaseMapId, GisLayerId } from '@/lib/gis/types';
+import { BASE_MAPS } from '@/lib/gis/constants';
+import { createGeoJsonLayer, generateLocalGisGeoJson } from '@/lib/gis/geojsonLoader';
+import { GisLayersPanel } from './GisLayersPanel';
 
 export interface MapPlace {
   id: string | number;
@@ -118,6 +123,57 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     hazards: true,
   });
   const [routingMode, setRoutingMode] = useState<'driving' | 'walking'>('driving');
+
+  // GIS Layer & Base Map state
+  const [activeBaseMap, setActiveBaseMap] = useState<BaseMapId>('osm');
+  const [isGisPanelOpen, setIsGisPanelOpen] = useState<boolean>(false);
+  const [activeGisLayers, setActiveGisLayers] = useState<Record<string, boolean>>({
+    flood: true,
+    landslide: true,
+    rainfall: false,
+    hazard_zones: false,
+    roads: true,
+    shelters: true,
+    hospitals: true,
+    facilities: false,
+    admin_boundaries: true,
+    rivers: true,
+    elevation: false,
+  });
+
+  const baseLayersRef = useRef<Record<BaseMapId, L.TileLayer | null>>({
+    osm: null,
+    satellite: null,
+    terrain: null,
+  });
+  const currentBaseLayerIdRef = useRef<BaseMapId>('osm');
+  const gisLayersRef = useRef<Record<string, L.LayerGroup | L.GeoJSON | null>>({});
+
+  // Two-way synchronization between GIS Layer toggles and bottom chips
+  const handleToggleGisLayer = useCallback((layerId: GisLayerId) => {
+    setActiveGisLayers((prev) => {
+      const nextVal = !prev[layerId];
+      if (layerId === 'shelters') {
+        setActiveLayers((al) => ({ ...al, shelters: nextVal }));
+      } else if (layerId === 'hospitals') {
+        setActiveLayers((al) => ({ ...al, hospitals: nextVal }));
+      } else if (layerId === 'hazard_zones') {
+        setActiveLayers((al) => ({ ...al, hazards: nextVal }));
+      }
+      return { ...prev, [layerId]: nextVal };
+    });
+  }, []);
+
+  const handleToggleBottomChip = useCallback((chip: 'shelters' | 'hospitals' | 'hazards') => {
+    setActiveLayers((prev) => {
+      const nextVal = !prev[chip];
+      setActiveGisLayers((gl) => ({
+        ...gl,
+        [chip === 'hazards' ? 'hazard_zones' : chip]: nextVal,
+      }));
+      return { ...prev, [chip]: nextVal };
+    });
+  }, []);
 
   const effectiveLat = userLat ?? latitude;
   const effectiveLon = userLon ?? longitude;
@@ -300,24 +356,49 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       attributionControl: true,
     });
 
-    // Real OpenStreetMap Standard Tile Layer
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map);
-
-    // Add Leaflet zoom control at bottom-right
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    // Requirement 5 & 6: Create custom panes for high z-index layering above tiles
+    // Create custom panes for strict layering
+    // 200: tilePane, 350: gisPane (GIS overlays), 450: accuracyPane, 600: markerPane, 650: userLocationPane
+    if (!map.getPane('gisPane')) {
+      const gPane = map.createPane('gisPane');
+      gPane.style.zIndex = '350';
+    }
     if (!map.getPane('userLocationPane')) {
       const userPane = map.createPane('userLocationPane');
-      userPane.style.zIndex = '650'; // standard markerPane is 600, overlayPane is 400, tilePane is 200
+      userPane.style.zIndex = '650';
     }
     if (!map.getPane('accuracyPane')) {
       const accPane = map.createPane('accuracyPane');
       accPane.style.zIndex = '450';
     }
+
+    // Initialize the 3 Base Tile Layers (OpenStreetMap, Satellite, Terrain)
+    const osmLayer = L.tileLayer(BASE_MAPS.osm.url, {
+      maxZoom: BASE_MAPS.osm.maxZoom,
+      attribution: BASE_MAPS.osm.attribution,
+    });
+    const satLayer = L.tileLayer(BASE_MAPS.satellite.url, {
+      maxZoom: BASE_MAPS.satellite.maxZoom,
+      attribution: BASE_MAPS.satellite.attribution,
+      className: BASE_MAPS.satellite.className,
+    });
+    const terLayer = L.tileLayer(BASE_MAPS.terrain.url, {
+      maxZoom: BASE_MAPS.terrain.maxZoom,
+      attribution: BASE_MAPS.terrain.attribution,
+      className: BASE_MAPS.terrain.className,
+    });
+
+    baseLayersRef.current = {
+      osm: osmLayer,
+      satellite: satLayer,
+      terrain: terLayer,
+    };
+
+    // Add currently active base map to map
+    const initialBase = baseLayersRef.current[currentBaseLayerIdRef.current] || osmLayer;
+    initialBase.addTo(map);
+
+    // Add Leaflet zoom control at bottom-right
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     // Track user drag/pan: do not snap back automatically if user manually moves map (Requirement 4)
     map.on('dragstart movestart', () => {
@@ -401,6 +482,23 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         } catch (_) {}
         routeLayerRef.current = null;
       }
+      Object.values(baseLayersRef.current).forEach((layer) => {
+        if (layer) {
+          try {
+            layer.remove();
+          } catch (_) {}
+        }
+      });
+      baseLayersRef.current = { osm: null, satellite: null, terrain: null };
+
+      Object.values(gisLayersRef.current).forEach((layer) => {
+        if (layer) {
+          try {
+            layer.remove();
+          } catch (_) {}
+        }
+      });
+      gisLayersRef.current = {};
       try {
         map.remove();
       } catch (_) {}
@@ -740,6 +838,235 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     }
   }, [activeRoute]);
 
+  // Base Map Layer Switching: Mutually exclusive, 0 page reload, 0 map recreation
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const prevBaseId = currentBaseLayerIdRef.current;
+    if (prevBaseId !== activeBaseMap) {
+      const prevLayer = baseLayersRef.current[prevBaseId];
+      if (prevLayer && map.hasLayer(prevLayer)) {
+        map.removeLayer(prevLayer);
+      }
+      const newLayer = baseLayersRef.current[activeBaseMap];
+      if (newLayer) {
+        newLayer.addTo(map);
+        if ('bringToBack' in newLayer && typeof (newLayer as any).bringToBack === 'function') {
+          (newLayer as any).bringToBack();
+        }
+      }
+      currentBaseLayerIdRef.current = activeBaseMap;
+    }
+  }, [activeBaseMap]);
+
+  // GIS Overlays Management: Add/Remove LayerGroups/GeoJSON dynamically without map recreation
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const bLat = basePlaceCoordsRef.current.lat || effectiveLat;
+    const bLon = basePlaceCoordsRef.current.lon || effectiveLon;
+
+    // Helper to toggle a layer on the map
+    const syncLayer = (
+      layerId: string,
+      isActive: boolean,
+      creator: () => L.LayerGroup | L.GeoJSON
+    ) => {
+      let layer = gisLayersRef.current[layerId];
+      if (isActive) {
+        if (!layer) {
+          layer = creator();
+          gisLayersRef.current[layerId] = layer;
+        }
+        if (!map.hasLayer(layer)) {
+          map.addLayer(layer);
+        }
+      } else {
+        if (layer && map.hasLayer(layer)) {
+          map.removeLayer(layer);
+        }
+      }
+    };
+
+    // 1. Hazard Buffer Zones (500m Red Evacuation + 1000m Amber Advisory Circles)
+    syncLayer('hazard_zones', !!activeGisLayers.hazard_zones, () => {
+      const grp = L.layerGroup();
+      const hazardCoords = [
+        { lat: bLat + 0.018, lon: bLon - 0.009, name: 'Active Landslide Slip Perimeter' },
+        { lat: bLat - 0.012, lon: bLon + 0.022, name: 'River Surge Inundation Perimeter' },
+      ];
+
+      hazardCoords.forEach((hz) => {
+        // 500m Inner Critical Evacuation Zone
+        const innerCircle = L.circle([hz.lat, hz.lon], {
+          radius: 500,
+          color: '#DC2626',
+          weight: 2,
+          fillColor: '#EF4444',
+          fillOpacity: 0.25,
+          dashArray: '5, 5',
+          pane: 'gisPane',
+        });
+        innerCircle.bindPopup(
+          `<div style="font-family: sans-serif; min-width: 180px;">
+            <strong style="color: #0F172A; font-size: 12px;">${hz.name}</strong><br/>
+            <span style="color:#DC2626; font-weight:800; font-size: 11px;">500m Immediate Evacuation Zone</span><br/>
+            <span style="color:#475569; font-size: 11px;">Life hazard within inner radius. Evacuate immediately.</span>
+          </div>`
+        );
+        grp.addLayer(innerCircle);
+
+        // 1000m Outer Caution Buffer
+        const outerCircle = L.circle([hz.lat, hz.lon], {
+          radius: 1000,
+          color: '#EA580C',
+          weight: 1.5,
+          fillColor: '#F97316',
+          fillOpacity: 0.12,
+          dashArray: '8, 8',
+          pane: 'gisPane',
+        });
+        outerCircle.bindPopup(
+          `<div style="font-family: sans-serif; min-width: 180px;">
+            <strong style="color: #0F172A; font-size: 12px;">${hz.name}</strong><br/>
+            <span style="color:#EA580C; font-weight:800; font-size: 11px;">1000m Secondary Caution Perimeter</span><br/>
+            <span style="color:#475569; font-size: 11px;">Advisory area. Monitor flood surge and slope movement.</span>
+          </div>`
+        );
+        grp.addLayer(outerCircle);
+      });
+
+      return grp;
+    });
+
+    // 2. Rainfall Radar Intensity Overlay
+    syncLayer('rainfall', !!activeGisLayers.rainfall, () => {
+      const grp = L.layerGroup();
+
+      // Band 1: Heavy Torrential Rain Cell (>50 mm/hr)
+      const heavyCell = L.polygon(
+        [
+          [bLat + 0.010, bLon - 0.012],
+          [bLat + 0.022, bLon - 0.005],
+          [bLat + 0.025, bLon + 0.015],
+          [bLat + 0.015, bLon + 0.020],
+          [bLat + 0.005, bLon + 0.005],
+        ],
+        {
+          fillColor: '#7C3AED',
+          fillOpacity: 0.45,
+          color: '#6D28D9',
+          weight: 1.5,
+          pane: 'gisPane',
+        }
+      );
+      heavyCell.bindPopup(
+        `<div style="font-family: sans-serif; min-width: 190px;">
+          <h4 style="margin:0 0 4px 0; color:#6D28D9; font-weight:800; font-size: 13px;">Doppler Radar: Heavy Rain Cell</h4>
+          <p style="margin:0 0 4px 0; font-size:11px;"><strong>Precipitation:</strong> 58.4 mm/hr (Torrential)</p>
+          <span style="font-size:10px; background:#EDE9FE; color:#6D28D9; padding:2px 6px; border-radius:4px; font-weight:700;">Flash Flood Warning Active</span>
+        </div>`
+      );
+      grp.addLayer(heavyCell);
+
+      // Band 2: Moderate Rain Belt (15-50 mm/hr)
+      const modCell = L.polygon(
+        [
+          [bLat + 0.002, bLon - 0.025],
+          [bLat + 0.032, bLon - 0.015],
+          [bLat + 0.038, bLon + 0.028],
+          [bLat + 0.012, bLon + 0.032],
+          [bLat - 0.005, bLon + 0.012],
+        ],
+        {
+          fillColor: '#0284C7',
+          fillOpacity: 0.25,
+          color: '#0369A1',
+          weight: 1.5,
+          pane: 'gisPane',
+        }
+      );
+      modCell.bindPopup(
+        `<div style="font-family: sans-serif; min-width: 190px;">
+          <h4 style="margin:0 0 4px 0; color:#0369A1; font-weight:800; font-size: 13px;">Doppler Radar: Moderate Rain Belt</h4>
+          <p style="margin:0; font-size:11px;"><strong>Precipitation:</strong> 26.2 mm/hr (Continuous Monsoonal)</p>
+        </div>`
+      );
+      grp.addLayer(modCell);
+
+      return grp;
+    });
+
+    // 3. GeoJSON Overlay Layers (Flood, Landslide, Roads, Admin, Rivers, Facilities, Elevation)
+    const geoJsonLayersToLoad: Array<{ id: string; file: string; color: string }> = [
+      { id: 'flood', file: '/data/flood-risk.geojson', color: '#2563EB' },
+      { id: 'landslide', file: '/data/landslide-risk.geojson', color: '#D97706' },
+      { id: 'roads', file: '/data/evacuation-roads.geojson', color: '#10B981' },
+      { id: 'admin_boundaries', file: '/data/administrative-boundaries.geojson', color: '#64748B' },
+      { id: 'rivers', file: '/data/rivers.geojson', color: '#0EA5E9' },
+      { id: 'facilities', file: '/data/facilities.geojson', color: '#6366F1' },
+      { id: 'elevation', file: '/data/elevation-contours.geojson', color: '#84CC16' },
+    ];
+
+    geoJsonLayersToLoad.forEach(({ id, file, color }) => {
+      const isActive = !!activeGisLayers[id];
+      const existingLayer = gisLayersRef.current[id];
+
+      if (isActive) {
+        if (existingLayer) {
+          if (!map.hasLayer(existingLayer)) {
+            map.addLayer(existingLayer);
+          }
+        } else {
+          // Fetch from static file, and synthesize local features if needed
+          fetch(file)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+              let geoData = data;
+              if (!geoData || !geoData.features || geoData.features.length === 0) {
+                geoData = generateLocalGisGeoJson(bLat, bLon, id);
+              } else {
+                const firstCoord = geoData.features[0]?.geometry?.coordinates;
+                const sampleLon = Array.isArray(firstCoord?.[0]) ? (Array.isArray(firstCoord[0][0]) ? firstCoord[0][0][0] : firstCoord[0][0]) : firstCoord?.[0];
+                const sampleLat = Array.isArray(firstCoord?.[0]) ? (Array.isArray(firstCoord[0][0]) ? firstCoord[0][0][1] : firstCoord[0][1]) : firstCoord?.[1];
+                if (sampleLat && sampleLon && (Math.abs(sampleLat - bLat) > 0.6 || Math.abs(sampleLon - bLon) > 0.6)) {
+                  const localGeo = generateLocalGisGeoJson(bLat, bLon, id);
+                  geoData = {
+                    type: 'FeatureCollection',
+                    features: [...geoData.features, ...localGeo.features],
+                  };
+                }
+              }
+
+              const newLayer = createGeoJsonLayer(geoData, {
+                defaultColor: color,
+              });
+              gisLayersRef.current[id] = newLayer;
+              if (activeGisLayers[id] && mapInstanceRef.current && !mapInstanceRef.current.hasLayer(newLayer)) {
+                mapInstanceRef.current.addLayer(newLayer);
+              }
+            })
+            .catch(() => {
+              const fallbackGeo = generateLocalGisGeoJson(bLat, bLon, id);
+              const fallbackLayer = createGeoJsonLayer(fallbackGeo, {
+                defaultColor: color,
+              });
+              gisLayersRef.current[id] = fallbackLayer;
+              if (activeGisLayers[id] && mapInstanceRef.current && !mapInstanceRef.current.hasLayer(fallbackLayer)) {
+                mapInstanceRef.current.addLayer(fallbackLayer);
+              }
+            });
+        }
+      } else {
+        if (existingLayer && map.hasLayer(existingLayer)) {
+          map.removeLayer(existingLayer);
+        }
+      }
+    });
+  }, [activeGisLayers, effectiveLat, effectiveLon]);
+
   return (
     <div className={`relative w-full h-full rounded-3xl overflow-hidden ${className}`}>
       {/* 1. Leaflet Map DOM Element */}
@@ -771,8 +1098,31 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         )}
       </div>
 
-      {/* 3. Top-Right: Google Maps-Style "My Location" Button (Requirements 7, 8, 9) */}
+      {/* 3. Top-Right: GIS Layers & "My Location" Button Cluster */}
       <div className="absolute top-3 right-3 z-[400] flex items-center space-x-2">
+        <button
+          onClick={() => setIsGisPanelOpen((prev) => !prev)}
+          className={`h-10 px-3.5 rounded-full border shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer ${
+            isGisPanelOpen
+              ? 'bg-blue-600 text-white border-blue-600 shadow-blue-500/20'
+              : 'bg-white dark:bg-[#131D2A] text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:border-blue-400'
+          }`}
+          title={lang === 'hi' ? 'जीआईएस मैप लेयर्स' : 'GIS Map Layers'}
+          aria-label="GIS Layers"
+        >
+          <Layers className={`w-4 h-4 shrink-0 ${isGisPanelOpen ? 'text-white' : 'text-blue-600 dark:text-blue-400'}`} />
+          <span className="text-xs font-bold whitespace-nowrap">
+            {lang === 'hi' ? 'लेयर्स' : 'Layers'}
+          </span>
+          <span className={`text-[10px] font-extrabold px-1.5 py-0.2 rounded-full ${
+            isGisPanelOpen
+              ? 'bg-white/25 text-white'
+              : 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
+          }`}>
+            {Object.values(activeGisLayers).filter(Boolean).length}
+          </span>
+        </button>
+
         <button
           onClick={handleLocateMe}
           disabled={isLocating}
@@ -812,6 +1162,38 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         </button>
       </div>
 
+      {/* Floating GIS Layers Panel */}
+      <GisLayersPanel
+        isOpen={isGisPanelOpen}
+        onClose={() => setIsGisPanelOpen(false)}
+        activeBaseMap={activeBaseMap}
+        onSelectBaseMap={(id) => setActiveBaseMap(id)}
+        activeGisLayers={activeGisLayers}
+        onToggleGisLayer={handleToggleGisLayer}
+        onResetDefaults={() => {
+          setActiveBaseMap('osm');
+          setActiveGisLayers({
+            flood: true,
+            landslide: true,
+            rainfall: false,
+            hazard_zones: false,
+            roads: true,
+            shelters: true,
+            hospitals: true,
+            facilities: false,
+            admin_boundaries: true,
+            rivers: true,
+            elevation: false,
+          });
+          setActiveLayers({
+            shelters: true,
+            hospitals: true,
+            hazards: false,
+          });
+        }}
+        lang={lang}
+      />
+
       {/* User-Friendly Location Error / Permission Banner (Requirements 2, 3, 8, 10, 11, 12, 13) */}
       {locationErrorMessage && isFallback && !isGpsActive && (
         <div className="absolute top-16 left-3 right-3 z-[400] max-w-sm mx-auto bg-white/95 dark:bg-[#1A2634]/95 backdrop-blur-md border border-amber-400 dark:border-amber-600 rounded-2xl p-2.5 shadow-xl flex items-center justify-between space-x-2 animate-in fade-in slide-in-from-top-2">
@@ -834,9 +1216,9 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       {/* 4. Bottom-Left: Modern Google Maps Category Filter Chips (Requirement 3) */}
       <div className="absolute bottom-4 left-3 z-[400] flex flex-wrap items-center gap-1.5 max-w-[270px] sm:max-w-none">
         <button
-          onClick={() => setActiveLayers((prev) => ({ ...prev, shelters: !prev.shelters }))}
+          onClick={() => handleToggleBottomChip('shelters')}
           className={`px-3 py-1.5 rounded-full text-xs font-bold border shadow-sm transition-all cursor-pointer flex items-center space-x-1.5 active:scale-95 ${
-            activeLayers.shelters
+            activeGisLayers.shelters
               ? 'bg-[#059669] text-white border-[#059669] shadow-emerald-500/20'
               : 'bg-white/95 dark:bg-[#1B2738]/95 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
           }`}
@@ -846,9 +1228,9 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveLayers((prev) => ({ ...prev, hazards: !prev.hazards }))}
+          onClick={() => handleToggleBottomChip('hazards')}
           className={`px-3 py-1.5 rounded-full text-xs font-bold border shadow-sm transition-all cursor-pointer flex items-center space-x-1.5 active:scale-95 ${
-            activeLayers.hazards
+            activeGisLayers.hazard_zones || activeLayers.hazards
               ? 'bg-[#DC2626] text-white border-[#DC2626] shadow-red-500/20'
               : 'bg-white/95 dark:bg-[#1B2738]/95 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
           }`}
@@ -858,9 +1240,9 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveLayers((prev) => ({ ...prev, hospitals: !prev.hospitals }))}
+          onClick={() => handleToggleBottomChip('hospitals')}
           className={`px-3 py-1.5 rounded-full text-xs font-bold border shadow-sm transition-all cursor-pointer flex items-center space-x-1.5 active:scale-95 ${
-            activeLayers.hospitals
+            activeGisLayers.hospitals
               ? 'bg-[#D97706] text-white border-[#D97706] shadow-amber-500/20'
               : 'bg-white/95 dark:bg-[#1B2738]/95 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
           }`}

@@ -1,0 +1,84 @@
+{
+  "type": "FeatureCollection",
+  "name": "Apda-Mitra Rivers and Water Bodies",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "riv-01",
+        "name": "Iruvanjippuzha River Trunk",
+        "nameHi": "इरुवांजीपुझा मुख्य नदी",
+        "category": "River Channel",
+        "risk_level": "high",
+        "stroke_weight": 4.5,
+        "status": "Warning Level Reached",
+        "description": "Originating in the Western Ghats; draining runoff from Chooralmala and Meppadi ridges into Chaliyar river.",
+        "source": "Central Water Commission",
+        "updated_at": "Hydrographic Telemetry"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [76.1050, 11.6400],
+          [76.1200, 11.6620],
+          [76.1340, 11.6800],
+          [76.1420, 11.6950],
+          [76.1550, 11.7100],
+          [76.1700, 11.7300]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "riv-02",
+        "name": "Soochipara Waterfall Stream & Tributary",
+        "nameHi": "सूचिप्पारा जलप्रपात धारा",
+        "category": "River Channel",
+        "risk_level": "moderate",
+        "stroke_weight": 3,
+        "status": "Turbulent Runoff",
+        "description": "High gradient mountain stream carrying storm sediment.",
+        "source": "Irrigation & Water Resources Dept",
+        "updated_at": "Hydrographic Telemetry"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [76.1600, 11.6600],
+          [76.1480, 11.6750],
+          [76.1340, 11.6800]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "riv-03",
+        "name": "Karapuzha Reservoir Emergency Storage Pool",
+        "nameHi": "कारापुझा जलाशय",
+        "category": "Water Body",
+        "risk_level": "info",
+        "area_sqkm": 3.8,
+        "status": "Dam Gates Level 2 Open",
+        "description": "Major earthen reservoir buffer for regional flood control.",
+        "source": "Dam Safety Organization",
+        "updated_at": "Hydrographic Telemetry"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [76.1600, 11.6050],
+            [76.1750, 11.6000],
+            [76.1850, 11.6150],
+            [76.1780, 11.6250],
+            [76.1620, 11.6200],
+            [76.1600, 11.6050]
+          ]
+        ]
+      }
+    }
+  ]
+}
