@@ -103,7 +103,7 @@ export const GisLayersPanel: React.FC<GisLayersPanelProps> = ({
       onTouchStart={(e) => e.stopPropagation()}
       onWheel={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
-      className="absolute top-14 left-2 right-2 w-[calc(100%-16px)] sm:left-auto sm:right-3 sm:w-[360px] sm:max-w-[calc(100%-24px)] z-[500] max-h-[calc(100%-70px)] flex flex-col bg-white/95 dark:bg-[#131D2A]/95 backdrop-blur-xl border border-gray-200/90 dark:border-gray-700/80 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden box-border animate-in fade-in slide-in-from-top-2 duration-200"
+      className="absolute top-[92px] sm:top-14 left-2 right-2 w-[calc(100%-16px)] sm:left-auto sm:right-3 sm:w-[360px] sm:max-w-[calc(100%-24px)] z-[500] max-h-[calc(100%-105px)] sm:max-h-[calc(100%-70px)] flex flex-col bg-white/95 dark:bg-[#131D2A]/95 backdrop-blur-xl border border-gray-200/90 dark:border-gray-700/80 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden box-border animate-in fade-in slide-in-from-top-2 duration-200"
       style={{
         boxSizing: 'border-box',
       }}
