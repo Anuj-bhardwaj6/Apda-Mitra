@@ -106,6 +106,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   // UI state
   const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null);
   const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [showPermissionDeniedBanner, setShowPermissionDeniedBanner] = useState<boolean>(false);
   const [activeLayers, setActiveLayers] = useState({
     shelters: true,
     hospitals: true,
@@ -115,6 +116,15 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
   const effectiveLat = userLat ?? latitude;
   const effectiveLon = userLon ?? longitude;
+
+  // Sync permission denied state
+  useEffect(() => {
+    if (isFallback && !isGpsActive) {
+      setShowPermissionDeniedBanner(true);
+    } else if (isGpsActive) {
+      setShowPermissionDeniedBanner(false);
+    }
+  }, [isFallback, isGpsActive]);
 
   // Initialize Leaflet Map
   useEffect(() => {
@@ -241,7 +251,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     }
   }, [effectiveLat, effectiveLon, locationName, isGpsActive, isFallback, accuracyMeters, isCompact, lang]);
 
-  // Handle "Locate Me" Button Click (Requirement 2 & 4)
+  // Handle "My Location" Button Click (Requirements 7, 8, 9, 10, 11)
   const handleLocateMe = useCallback(() => {
     setIsLocating(true);
     const map = mapInstanceRef.current;
@@ -254,11 +264,12 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         (pos) => {
           const freshLat = pos.coords.latitude;
           const freshLon = pos.coords.longitude;
+          setShowPermissionDeniedBanner(false);
           if (onRefreshGPS) {
             onRefreshGPS();
           }
           if (map) {
-            map.flyTo([freshLat, freshLon], 15.5, {
+            map.flyTo([freshLat, freshLon], 16.5, {
               animate: true,
               duration: 1.2,
               easeLinearity: 0.25,
@@ -267,12 +278,15 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           setIsLocating(false);
         },
         (err) => {
-          console.warn('Locate Me GPS fallback:', err.message);
+          console.warn('My Location GPS query notice:', err.message);
+          if (err.code === err.PERMISSION_DENIED) {
+            setShowPermissionDeniedBanner(true);
+          }
           if (onRefreshGPS) {
             onRefreshGPS();
           }
           if (map) {
-            map.flyTo([effectiveLat, effectiveLon], 15.5, {
+            map.flyTo([effectiveLat, effectiveLon], 16, {
               animate: true,
               duration: 1.0,
             });
@@ -286,7 +300,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         onRefreshGPS();
       }
       if (map) {
-        map.flyTo([effectiveLat, effectiveLon], 15.5, {
+        map.flyTo([effectiveLat, effectiveLon], 16, {
           animate: true,
           duration: 1.0,
         });
@@ -548,28 +562,28 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         )}
       </div>
 
-      {/* 3. Top-Right: Google Maps-Style "Locate Me" FAB (Requirement 2) */}
-      <div className="absolute top-3 right-3 z-[400] flex flex-col space-y-2">
+      {/* 3. Top-Right: Google Maps-Style "My Location" Button (Requirements 7 & 8) */}
+      <div className="absolute top-3 right-3 z-[400] flex items-center space-x-2">
         <button
           onClick={handleLocateMe}
           disabled={isLocating}
-          className="w-11 h-11 rounded-full bg-white dark:bg-[#131D2A] border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center cursor-pointer group"
-          title={lang === 'hi' ? 'मेरा स्थान खोजें' : 'Locate Me (Current GPS)'}
-          aria-label="Locate Me"
+          className="h-10 px-3.5 rounded-full bg-white dark:bg-[#131D2A] border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer group"
+          title={lang === 'hi' ? 'मेरा स्थान (My Location)' : 'My Location'}
+          aria-label="My Location"
         >
           {isLocating ? (
-            <div className="w-5 h-5 rounded-full border-2 border-[#1A73E8] border-t-transparent animate-spin" />
+            <div className="w-4 h-4 rounded-full border-2 border-[#1A73E8] border-t-transparent animate-spin shrink-0" />
           ) : (
             <svg
-              width="21"
-              height="21"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2.2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={`transition-colors ${
+              className={`shrink-0 transition-colors ${
                 isGpsActive
                   ? 'text-[#1A73E8] dark:text-[#60A5FA]'
                   : 'text-gray-600 dark:text-gray-300 group-hover:text-[#1A73E8]'
@@ -583,24 +597,32 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
               <circle cx="12" cy="12" r="2" fill="currentColor" />
             </svg>
           )}
+          <span className="text-xs font-bold text-gray-700 dark:text-gray-200 group-hover:text-[#1A73E8] dark:group-hover:text-[#60A5FA] whitespace-nowrap">
+            {lang === 'hi' ? 'मेरा स्थान' : 'My Location'}
+          </span>
         </button>
-
-        {/* Secondary Refresh Button */}
-        {onRefreshGPS && (
-          <button
-            onClick={() => {
-              setIsLocating(true);
-              onRefreshGPS();
-              setTimeout(() => setIsLocating(false), 1000);
-            }}
-            className="w-11 h-11 rounded-full bg-white dark:bg-[#131D2A] border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center justify-center text-gray-500 dark:text-gray-300 hover:text-[#1F2937] dark:hover:text-white cursor-pointer"
-            title={lang === 'hi' ? 'जीपीएस पुनः लोड करें' : 'Refresh Telemetry'}
-            aria-label="Refresh GPS"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLocating ? 'animate-spin text-[#1A73E8]' : ''}`} />
-          </button>
-        )}
       </div>
+
+      {/* User-Friendly Permission Denied Banner (Requirement 10) */}
+      {showPermissionDeniedBanner && (
+        <div className="absolute top-16 left-3 right-3 z-[400] max-w-sm mx-auto bg-white/95 dark:bg-[#1A2634]/95 backdrop-blur-md border border-amber-400 dark:border-amber-600 rounded-2xl p-2.5 shadow-xl flex items-center justify-between space-x-2 animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center space-x-2 text-xs text-amber-900 dark:text-amber-200">
+            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+            <span className="font-semibold text-[11px] leading-tight">
+              {lang === 'hi'
+                ? 'आपकी स्थिति दिखाने के लिए स्थान अनुमति आवश्यक है।'
+                : 'Location permission is required to show your position.'}
+            </span>
+          </div>
+          <button
+            onClick={() => setShowPermissionDeniedBanner(false)}
+            className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer shrink-0"
+            aria-label="Dismiss message"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* 4. Bottom-Left: Modern Google Maps Category Filter Chips (Requirement 3) */}
       <div className="absolute bottom-4 left-3 z-[400] flex flex-wrap items-center gap-1.5 max-w-[270px] sm:max-w-none">
