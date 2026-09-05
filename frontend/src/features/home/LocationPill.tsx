@@ -99,8 +99,16 @@ export const LocationPill: React.FC<LocationPillProps> = ({
               )}
             </div>
 
+            {/* Clean Location Name (Requirements 1, 2, 8): Never display error string if coordinates exist */}
             <h2 className="text-sm sm:text-base font-bold text-[#1F2937] dark:text-white truncate mt-0.5">
-              {locationName}
+              {(!isFallback || isGpsActive) &&
+              (locationName.includes('Unable') ||
+                locationName.includes('permission') ||
+                locationName.includes('required')) &&
+              latitude !== undefined &&
+              longitude !== undefined
+                ? (latitude >= 0 ? `${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E` : `${Math.abs(latitude).toFixed(4)}°S, ${longitude.toFixed(4)}°E`)
+                : locationName}
             </h2>
 
             {latitude !== undefined && longitude !== undefined ? (

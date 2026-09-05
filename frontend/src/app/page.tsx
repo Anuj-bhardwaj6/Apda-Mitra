@@ -65,6 +65,9 @@ export default function Page() {
 
   // WatchPosition Ref for real-time tracking and unmount cleanup (Requirement 4 & 14)
   const watchIdRef = useRef<number | null>(null);
+  // Valid location tracking refs to protect active coordinates from being erased by transient errors (Requirements 1, 2, 6, 7, 8)
+  const hasValidLocationRef = useRef<boolean>(false);
+  const lastValidCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
   // Location change throttling refs to eliminate rapid state thrashing on minor GPS jitter (Requirements 2, 3, 4)
   const lastStateCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
   const lastGeocodeCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
@@ -102,20 +105,30 @@ export default function Page() {
       return;
     }
 
-    setLocationStatus('detecting');
-    setLocationName('Acquiring Live GPS...');
+    // Only transition to 'detecting' label if no valid location exists yet
+    if (!hasValidLocationRef.current) {
+      setLocationStatus('detecting');
+      setLocationName('Acquiring Live GPS...');
+    }
 
     const handleSuccess = async (pos: GeolocationPosition) => {
       const userLat = pos.coords.latitude;
       const userLon = pos.coords.longitude;
       const userAcc = pos.coords.accuracy;
 
-      // Always update real-time accuracy and lock indicators
+      hasValidLocationRef.current = true;
+      lastValidCoordsRef.current = { lat: userLat, lon: userLon };
+
+      // Requirements 1, 3, 5:
+      // - Save latitude & longitude
+      // - Clear previous location error
+      // - Update accuracy
+      // - Show successful "Current Location" state
       setAccuracyMeters(userAcc);
-      setIsGpsActive(true);
+      setIsGpsActive(true); // Watcher is active
       setIsFallback(false);
       setGpsLocked(true);
-      setLocationStatus('active');
+      setLocationStatus('active'); // Location successfully obtained
       setPermissionState('granted');
 
       // Update state coordinates only on initial lock or if movement exceeds ~15m (0.00015 deg)
@@ -130,6 +143,23 @@ export default function Page() {
         setLat(userLat);
         setLon(userLon);
       }
+
+      const coordString = `${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°E`;
+      // Clear any previous error/detecting message immediately
+      setLocationName((prev) => {
+        if (
+          !prev ||
+          prev.includes('Unable') ||
+          prev.includes('permission') ||
+          prev.includes('required') ||
+          prev.includes('Acquiring') ||
+          prev.includes('Detecting') ||
+          prev.includes('Fallback')
+        ) {
+          return coordString;
+        }
+        return prev;
+      });
 
       // Reverse geocode only if first time or moved > ~450m (0.004 deg)
       const prevGeocode = lastGeocodeCoordsRef.current;
@@ -149,16 +179,26 @@ export default function Page() {
           } else if (res && res.data && res.data.district) {
             setLocationName(`${res.data.district}, ${res.data.state || 'India'}`);
           } else {
-            setLocationName(`${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°E`);
+            setLocationName(coordString);
           }
         } catch {
           // Clean coordinate representation if reverse-geocoding endpoint is unreachable
-          setLocationName(`${userLat.toFixed(4)}°N, ${userLon.toFixed(4)}°E`);
+          setLocationName(coordString);
         }
       }
     };
 
     const handleFailure = (error: GeolocationPositionError) => {
+      // Requirements 2, 6, 7, 8:
+      // - A temporary geolocation error must NOT immediately erase the last valid location.
+      // - If a previous valid location exists and a later GPS update fails, keep the last valid coordinates and blue location marker.
+      // - Only show "Unable to get your location" when there is no valid location available at all.
+      if (hasValidLocationRef.current || lastValidCoordsRef.current !== null) {
+        console.warn('Geolocation transient notice (preserving last valid position):', error.message);
+        return;
+      }
+
+      // ONLY when NO valid location is available at all:
       setIsGpsActive(false);
       setGpsLocked(false);
       setIsFallback(true);
@@ -166,33 +206,19 @@ export default function Page() {
       setLon(FALLBACK_LON);
 
       if (error.code === error.PERMISSION_DENIED) {
-        // Requirement 11
         setLocationStatus('denied');
         setPermissionState('denied');
         setLocationName('Location permission is required to show your position.');
       } else if (error.code === error.TIMEOUT) {
-        // Requirement 12
         setLocationStatus('timeout');
         setLocationName('Unable to get your location. Please try again.');
       } else {
-        // Requirement 13
         setLocationStatus('unavailable');
         setLocationName('Unable to get your location. Please try again.');
       }
     };
 
-    // Requirement 1 & 2: navigator.geolocation.getCurrentPosition with timeout 10000, high accuracy
-    navigator.geolocation.getCurrentPosition(
-      handleSuccess,
-      handleFailure,
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
-    );
-
-    // Requirement 4 & 14: Also use watchPosition for continuous movement updates
+    // Requirement 4 & 14: Use watchPosition for continuous tracking
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
@@ -204,7 +230,7 @@ export default function Page() {
           handleSuccess(pos);
         },
         (err) => {
-          console.warn('Geolocation watchPosition update notice:', err.message);
+          handleFailure(err);
         },
         {
           enableHighAccuracy: true,
@@ -213,9 +239,22 @@ export default function Page() {
         }
       );
       watchIdRef.current = watchId;
+      setIsGpsActive(true); // Requirement 3: GPS Active indicates geolocation watcher is running
     } catch (e) {
       console.warn('Could not register watchPosition:', e);
+      setIsGpsActive(false);
     }
+
+    // Immediate query via getCurrentPosition
+    navigator.geolocation.getCurrentPosition(
+      handleSuccess,
+      handleFailure,
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
   }, [FALLBACK_LAT, FALLBACK_LON]);
 
   // Permission State Management and Initial GPS Request (Requirement 2 & 3)
@@ -354,6 +393,8 @@ export default function Page() {
   }, []);
 
   const handleSelectLocation = (name: string, newLat: number, newLon: number) => {
+    hasValidLocationRef.current = true;
+    lastValidCoordsRef.current = { lat: newLat, lon: newLon };
     lastStateCoordsRef.current = { lat: newLat, lon: newLon };
     lastGeocodeCoordsRef.current = { lat: newLat, lon: newLon };
     setLocationName(name);

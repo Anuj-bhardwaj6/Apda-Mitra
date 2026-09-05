@@ -130,7 +130,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       } else {
         setLocationErrorMessage('Location permission is required to show your position.');
       }
-    } else if (isGpsActive) {
+    } else {
       setLocationErrorMessage(null);
     }
   }, [isFallback, isGpsActive, locationName]);
@@ -244,16 +244,21 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
             errorMsg = 'Unable to get your location. Please try again.';
           }
 
-          setLocationErrorMessage(errorMsg);
-
-          if (shouldRecenter) {
-            const map = mapInstanceRef.current;
-            if (map) {
-              map.flyTo([effectiveLat, effectiveLon], 16, {
-                animate: true,
-                duration: 1.0,
-              });
+          // Requirements 2, 6, 7, 8: Never show "Unable to get your location" when valid coordinates are already available!
+          const hasValidPosition = userMarkerRef.current !== null || (!isFallback && effectiveLat);
+          if (hasValidPosition) {
+            setLocationErrorMessage(null);
+            if (shouldRecenter) {
+              const map = mapInstanceRef.current;
+              if (map) {
+                map.flyTo([effectiveLat, effectiveLon], 16, {
+                  animate: true,
+                  duration: 1.0,
+                });
+              }
             }
+          } else {
+            setLocationErrorMessage(errorMsg);
           }
 
           if (onRefreshGPS) {
@@ -748,7 +753,13 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         >
           <span className={`w-2 h-2 rounded-full ${isLocating ? 'bg-[#1A73E8] animate-ping' : isGpsActive ? 'bg-[#10B981] animate-pulse' : 'bg-amber-500'}`} />
           <span className="truncate max-w-[150px] sm:max-w-[220px]">
-            {isLocating ? (lang === 'hi' ? 'जीपीएस खोज रहा है...' : 'Acquiring Live GPS...') : locationErrorMessage || locationName}
+            {isLocating
+              ? (lang === 'hi' ? 'जीपीएस खोज रहा है...' : 'Acquiring Live GPS...')
+              : (!isFallback || isGpsActive)
+                ? (locationName && !locationName.includes('Unable') && !locationName.includes('permission') && !locationName.includes('required')
+                    ? locationName
+                    : `${effectiveLat.toFixed(4)}°N, ${effectiveLon.toFixed(4)}°E`)
+                : locationErrorMessage || locationName}
           </span>
         </button>
 
@@ -801,8 +812,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         </button>
       </div>
 
-      {/* User-Friendly Location Error / Permission Banner (Requirements 3, 10, 11, 12, 13) */}
-      {locationErrorMessage && (
+      {/* User-Friendly Location Error / Permission Banner (Requirements 2, 3, 8, 10, 11, 12, 13) */}
+      {locationErrorMessage && isFallback && !isGpsActive && (
         <div className="absolute top-16 left-3 right-3 z-[400] max-w-sm mx-auto bg-white/95 dark:bg-[#1A2634]/95 backdrop-blur-md border border-amber-400 dark:border-amber-600 rounded-2xl p-2.5 shadow-xl flex items-center justify-between space-x-2 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center space-x-2 text-xs text-amber-900 dark:text-amber-200">
             <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
