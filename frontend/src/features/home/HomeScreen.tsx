@@ -42,6 +42,7 @@ interface HomeScreenProps {
   onSelectLocation: (name: string, lat: number, lon: number) => void;
   onRefreshGPS?: () => void;
   onOpenSOS: () => void;
+  accuracyMeters?: number;
   lang: 'en' | 'hi';
 }
 
@@ -58,6 +59,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onSelectLocation,
   onRefreshGPS,
   onOpenSOS,
+  accuracyMeters,
   lang,
 }) => {
   // Staged loading UX pipeline
@@ -222,6 +224,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               reports={communityReports}
               isGpsActive={isGpsActive}
               isFallback={isFallback}
+              accuracyMeters={accuracyMeters}
               onRefreshGPS={onRefreshGPS}
               onOpenSearch={() => setIsSearchOpen(true)}
               onSelectShelter={(sh) => {

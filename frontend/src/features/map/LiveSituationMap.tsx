@@ -27,6 +27,7 @@ interface LiveSituationMapProps {
   onRefreshGPS?: () => void;
   onOpenSearch: () => void;
   onSelectShelter: (shelter: ShelterItem) => void;
+  accuracyMeters?: number;
   lang: 'en' | 'hi';
 }
 
@@ -41,6 +42,7 @@ export const LiveSituationMap: React.FC<LiveSituationMapProps> = ({
   onRefreshGPS,
   onOpenSearch,
   onSelectShelter,
+  accuracyMeters,
   lang,
 }) => {
   const [activeRoute, setActiveRoute] = useState<RouteDirections | null>(null);
@@ -79,6 +81,7 @@ export const LiveSituationMap: React.FC<LiveSituationMapProps> = ({
         timeHorizon={timeHorizon}
         isGpsActive={isGpsActive}
         isFallback={isFallback}
+        accuracyMeters={accuracyMeters}
         onRefreshGPS={onRefreshGPS}
         onNavigateTo={handleNavigateTo}
         onOpenSearch={onOpenSearch}

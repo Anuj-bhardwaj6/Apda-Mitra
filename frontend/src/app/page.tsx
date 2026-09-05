@@ -58,6 +58,7 @@ export default function Page() {
   const [isGpsActive, setIsGpsActive] = useState<boolean>(false);
   const [isFallback, setIsFallback] = useState<boolean>(false);
   const [gpsLocked, setGpsLocked] = useState(false);
+  const [accuracyMeters, setAccuracyMeters] = useState<number | null>(null);
 
   // Time Horizon Forecast State (SIH Feature)
   const [timeHorizon, setTimeHorizon] = useState<'now' | '+3h' | '+6h' | '+12h' | 'tomorrow'>('now');
@@ -100,8 +101,10 @@ export default function Page() {
     const handleSuccess = async (pos: GeolocationPosition) => {
       const userLat = pos.coords.latitude;
       const userLon = pos.coords.longitude;
+      const userAcc = pos.coords.accuracy;
       setLat(userLat);
       setLon(userLon);
+      setAccuracyMeters(userAcc);
       setIsGpsActive(true);
       setIsFallback(false);
       setGpsLocked(true);
@@ -416,6 +419,7 @@ export default function Page() {
               onSelectLocation={handleSelectLocation}
               onRefreshGPS={requestCurrentLocation}
               onOpenSOS={() => setIsSOSOpen(true)}
+              accuracyMeters={accuracyMeters ?? undefined}
               lang={lang}
             />
           )}
@@ -429,6 +433,7 @@ export default function Page() {
                 locationName={locationName}
                 isGpsActive={isGpsActive}
                 isFallback={isFallback}
+                accuracyMeters={accuracyMeters ?? undefined}
                 onRefreshGPS={requestCurrentLocation}
                 onLocationSelect={(newLat, newLon, name) => handleSelectLocation(name || 'Selected Location', newLat, newLon)}
                 onSearchOpen={() => setIsLocationSearchOpen(true)}

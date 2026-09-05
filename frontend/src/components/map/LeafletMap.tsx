@@ -9,18 +9,12 @@ import {
   Navigation,
   Phone,
   X,
-  ExternalLink,
-  Layers,
-  Sparkles,
-  CheckCircle2,
   RefreshCw,
-  Maximize2,
-  Minimize2,
   Car,
   Footprints,
-  Shield,
-  Clock,
-  Compass
+  Compass,
+  CheckCircle2,
+  Users
 } from 'lucide-react';
 import { RouteDirections, ShelterResource, CitizenReport, HistoricalLandslide } from '@/lib/api';
 
@@ -48,6 +42,7 @@ interface LeafletMapProps {
   longitude: number;
   userLat?: number;
   userLon?: number;
+  accuracyMeters?: number;
   locationName?: string;
   mode?: 'citizen' | 'officer';
   shelters?: ShelterResource[] | any[];
@@ -75,6 +70,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   longitude,
   userLat,
   userLon,
+  accuracyMeters,
   locationName = 'Current Location',
   mode = 'citizen',
   shelters = [],
@@ -103,15 +99,17 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   const placeMarkersLayerRef = useRef<L.LayerGroup | null>(null);
   const routeLayerRef = useRef<L.Polyline | null>(null);
 
-  // Bottom Sheet State
+  // Smart centering & drag tracking refs (Requirement 4)
+  const hasInitialCenteredRef = useRef<boolean>(false);
+  const isUserInteractingRef = useRef<boolean>(false);
+
+  // UI state
   const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isLocating, setIsLocating] = useState(false);
+  const [isLocating, setIsLocating] = useState<boolean>(false);
   const [activeLayers, setActiveLayers] = useState({
     shelters: true,
     hospitals: true,
     hazards: true,
-    reports: true,
   });
   const [routingMode, setRoutingMode] = useState<'driving' | 'walking'>('driving');
 
@@ -126,8 +124,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     // Create Map with OpenStreetMap live tiles (Zero API key required)
     const map = L.map(mapContainerRef.current, {
       center: [effectiveLat, effectiveLon],
-      zoom: isCompact ? 13 : 14,
-      zoomControl: false, // We use custom styled zoom control in bottom-right
+      zoom: isCompact ? 13 : 15,
+      zoomControl: false, // We use custom styled Google Maps style zoom controls
       attributionControl: true,
     });
 
@@ -139,6 +137,11 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
     // Add Leaflet zoom control at bottom-right
     L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // Track user drag/pan: do not snap back automatically if user manually moves map (Requirement 4)
+    map.on('dragstart movestart', () => {
+      isUserInteractingRef.current = true;
+    });
 
     // Layer group for place markers
     const placeGroup = L.layerGroup().addTo(map);
@@ -157,33 +160,44 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     };
   }, []);
 
-  // Update Center and Blue User Location Marker + Accuracy Circle
+  // Update Blue Current Location Dot & Accuracy Circle (Requirements 1 & 4)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Smoothly pan to new GPS coordinates
-    map.panTo([effectiveLat, effectiveLon], { animate: true, duration: 0.8 });
+    // Centering behavior (Requirement 4):
+    // Center map on user location on initial load.
+    // Do NOT continuously force center if user manually moved the map!
+    if (!hasInitialCenteredRef.current) {
+      map.setView([effectiveLat, effectiveLon], isCompact ? 14 : 15);
+      hasInitialCenteredRef.current = true;
+    }
 
-    // 1. Blue Current Location Beacon Marker
+    // Google Maps-style location dot styling:
+    // Solid blue center, crisp white border, multi-layer drop shadow, pulsing sonar halo
+    const dotClass = isFallback ? 'gmaps-fallback-dot' : '';
+    const ringClass = isFallback ? 'gmaps-fallback-ring' : '';
+
+    const userIcon = L.divIcon({
+      className: 'gmaps-location-icon-wrapper',
+      html: `
+        <div class="gmaps-location-container">
+          <div class="gmaps-pulse-ring ${ringClass}"></div>
+          <div class="gmaps-solid-dot ${dotClass}"></div>
+        </div>
+      `,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+
+    // 1. Current Location Marker
     if (userMarkerRef.current) {
       userMarkerRef.current.setLatLng([effectiveLat, effectiveLon]);
+      userMarkerRef.current.setIcon(userIcon);
     } else {
-      const userIcon = L.divIcon({
-        className: 'gps-pulse-icon',
-        html: `
-          <div class="gps-pulse-container">
-            <div class="gps-pulse-ring"></div>
-            <div class="gps-pulse-dot"></div>
-          </div>
-        `,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-      });
-
       const userMarker = L.marker([effectiveLat, effectiveLon], {
         icon: userIcon,
-        zIndexOffset: 1000,
+        zIndexOffset: 1200,
       }).addTo(map);
 
       userMarker.on('click', () => {
@@ -192,7 +206,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           type: 'user',
           title: lang === 'hi' ? 'आपकी लाइव जीपीएस स्थिति' : 'Your Current Location',
           subtitle: locationName,
-          description: `Coordinates: ${effectiveLat.toFixed(4)}°N, ${effectiveLon.toFixed(4)}°E • Accuracy: ±4m • Status: ${isGpsActive ? 'Live GPS Active' : 'Fallback'}`,
+          description: `Coordinates: ${effectiveLat.toFixed(4)}°N, ${effectiveLon.toFixed(4)}°E • Accuracy: ±${Math.round(accuracyMeters || 35)}m • Status: ${isGpsActive ? 'Live GPS Active' : 'Fallback Zone'}`,
           latitude: effectiveLat,
           longitude: effectiveLon,
           source: isGpsActive ? 'Browser Geolocation (GPS)' : 'Fallback Safe Zone',
@@ -202,35 +216,86 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       userMarkerRef.current = userMarker;
     }
 
-    // 2. Blue Accuracy Circle around user position
+    // 2. Soft/light blue Accuracy Circle (Requirements 1 & 4)
+    // Radius dynamically bound to Geolocation accuracy (meters), clamped to sensible range [25m, 250m]
+    const accuracyRadius = Math.max(25, Math.min(accuracyMeters || 50, 250));
+    const circleColor = isFallback ? '#D97706' : '#1A73E8';
+    const circleFill = isFallback ? '#F59E0B' : '#4285F4';
+
     if (accuracyCircleRef.current) {
       accuracyCircleRef.current.setLatLng([effectiveLat, effectiveLon]);
+      accuracyCircleRef.current.setRadius(accuracyRadius);
+      accuracyCircleRef.current.setStyle({
+        color: circleColor,
+        fillColor: circleFill,
+      });
     } else {
       const circle = L.circle([effectiveLat, effectiveLon], {
-        radius: 65, // Accuracy radius in meters
-        color: '#1E88E5',
-        fillColor: '#2196F3',
-        fillOpacity: 0.15,
+        radius: accuracyRadius,
+        color: circleColor,
+        fillColor: circleFill,
+        fillOpacity: 0.12,
         weight: 1.5,
       }).addTo(map);
       accuracyCircleRef.current = circle;
     }
-  }, [effectiveLat, effectiveLon, locationName, isGpsActive, lang]);
+  }, [effectiveLat, effectiveLon, locationName, isGpsActive, isFallback, accuracyMeters, isCompact, lang]);
 
-  // Handle "Locate Me" Button Click
+  // Handle "Locate Me" Button Click (Requirement 2 & 4)
   const handleLocateMe = useCallback(() => {
     setIsLocating(true);
-    if (onRefreshGPS) {
-      onRefreshGPS();
-    }
     const map = mapInstanceRef.current;
-    if (map) {
-      map.flyTo([effectiveLat, effectiveLon], 15, { animate: true, duration: 1.0 });
+
+    // Reset user moving flag on explicit locate request
+    isUserInteractingRef.current = false;
+
+    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const freshLat = pos.coords.latitude;
+          const freshLon = pos.coords.longitude;
+          if (onRefreshGPS) {
+            onRefreshGPS();
+          }
+          if (map) {
+            map.flyTo([freshLat, freshLon], 15.5, {
+              animate: true,
+              duration: 1.2,
+              easeLinearity: 0.25,
+            });
+          }
+          setIsLocating(false);
+        },
+        (err) => {
+          console.warn('Locate Me GPS fallback:', err.message);
+          if (onRefreshGPS) {
+            onRefreshGPS();
+          }
+          if (map) {
+            map.flyTo([effectiveLat, effectiveLon], 15.5, {
+              animate: true,
+              duration: 1.0,
+            });
+          }
+          setIsLocating(false);
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
+    } else {
+      if (onRefreshGPS) {
+        onRefreshGPS();
+      }
+      if (map) {
+        map.flyTo([effectiveLat, effectiveLon], 15.5, {
+          animate: true,
+          duration: 1.0,
+        });
+      }
+      setTimeout(() => setIsLocating(false), 800);
     }
-    setTimeout(() => setIsLocating(false), 1200);
   }, [effectiveLat, effectiveLon, onRefreshGPS]);
 
-  // Render & Update Shelters, Hazards, Hospitals, and Incident Markers
+  // Render & Update Shelters, Hospitals, and Hazard Markers (Requirement 3)
   useEffect(() => {
     const map = mapInstanceRef.current;
     const placeGroup = placeMarkersLayerRef.current;
@@ -238,7 +303,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
     placeGroup.clearLayers();
 
-    // 1. Safe Shelters Markers
+    // 1. Safe Shelter Markers (High-recognition Emerald Shield Pins)
     if (activeLayers.shelters) {
       const defaultShelters: MapPlace[] = [
         {
@@ -293,19 +358,21 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         const shelterIcon = L.divIcon({
           className: 'shelter-marker-icon',
           html: `
-            <div style="cursor: pointer; display: flex; flex-direction: column; align-items: center;">
-              <div style="background-color: #2E7D32; border: 2.5px solid #FFFFFF; box-shadow: 0 4px 12px rgba(46, 125, 50, 0.45); width: 34px; height: 34px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            <div style="cursor: pointer; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 4px 8px rgba(5,150,105,0.4));">
+              <div style="background: linear-gradient(135deg, #10B981, #059669); border: 2.5px solid #FFFFFF; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <path d="M9 21v-6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6"/>
                 </svg>
               </div>
-              <span style="background: rgba(255,255,255,0.95); font-size: 10px; font-weight: 800; color: #1B5E20; padding: 2px 6px; border-radius: 9999px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); border: 1px solid #A5D6A7; white-space: nowrap;">
+              <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #059669; margin-top: -1px;"></div>
+              <span style="background: rgba(255,255,255,0.96); font-size: 10px; font-weight: 800; color: #065F46; padding: 2px 6px; border-radius: 9999px; margin-top: 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.18); border: 1px solid #A7F3D0; white-space: nowrap;">
                 ${sh.distanceKm} km
               </span>
             </div>
           `,
-          iconSize: [40, 52],
-          iconAnchor: [20, 48],
+          iconSize: [44, 56],
+          iconAnchor: [22, 50],
         });
 
         const marker = L.marker([sh.latitude, sh.longitude], { icon: shelterIcon });
@@ -314,7 +381,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       });
     }
 
-    // 2. Hospitals & Emergency Healthcare
+    // 2. Hospitals & Emergency Healthcare (Crimson Medical Cross Pins)
     if (activeLayers.hospitals) {
       const defaultHospitals: MapPlace[] = [
         {
@@ -335,19 +402,20 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         const hospIcon = L.divIcon({
           className: 'hosp-marker-icon',
           html: `
-            <div style="cursor: pointer; display: flex; flex-direction: column; align-items: center;">
-              <div style="background-color: #D97706; border: 2.5px solid #FFFFFF; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.45); width: 34px; height: 34px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 6v12"/><path d="M6 12h12"/>
+            <div style="cursor: pointer; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 4px 8px rgba(220,38,38,0.4));">
+              <div style="background: linear-gradient(135deg, #EF4444, #DC2626); border: 2.5px solid #FFFFFF; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M5 12h14"/>
                 </svg>
               </div>
-              <span style="background: rgba(255,255,255,0.95); font-size: 10px; font-weight: 800; color: #B45309; padding: 2px 6px; border-radius: 9999px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); border: 1px solid #FCD34D; white-space: nowrap;">
+              <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #DC2626; margin-top: -1px;"></div>
+              <span style="background: rgba(255,255,255,0.96); font-size: 10px; font-weight: 800; color: #991B1B; padding: 2px 6px; border-radius: 9999px; margin-top: 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.18); border: 1px solid #FECACA; white-space: nowrap;">
                 ${hosp.distanceKm} km
               </span>
             </div>
           `,
-          iconSize: [40, 52],
-          iconAnchor: [20, 48],
+          iconSize: [44, 56],
+          iconAnchor: [22, 50],
         });
 
         const marker = L.marker([hosp.latitude, hosp.longitude], { icon: hospIcon });
@@ -356,7 +424,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       });
     }
 
-    // 3. Citizen Reports / Hazard Incidents
+    // 3. Hazard Incidents & Citizen Reports (High-visibility Amber/Red Caution Pins)
     if (activeLayers.hazards) {
       const defaultReports: MapPlace[] = [
         {
@@ -405,19 +473,22 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         const hazardIcon = L.divIcon({
           className: 'hazard-marker-icon',
           html: `
-            <div style="cursor: pointer; display: flex; flex-direction: column; align-items: center;">
-              <div style="background-color: #DC2626; border: 2.5px solid #FFFFFF; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.45); width: 34px; height: 34px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            <div style="cursor: pointer; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 4px 8px rgba(217,119,6,0.4));">
+              <div style="background: linear-gradient(135deg, #F59E0B, #D97706); border: 2.5px solid #FFFFFF; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
               </div>
-              <span style="background: rgba(220,38,38,0.95); font-size: 9px; font-weight: 800; color: #FFFFFF; padding: 1.5px 5px; border-radius: 9999px; margin-top: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); white-space: nowrap;">
+              <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #D97706; margin-top: -1px;"></div>
+              <span style="background: rgba(255,255,255,0.96); font-size: 9.5px; font-weight: 800; color: #92400E; padding: 1.5px 6px; border-radius: 9999px; margin-top: 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.18); border: 1px solid #FDE68A; white-space: nowrap;">
                 ${rep.severity || 'ALERT'}
               </span>
             </div>
           `,
-          iconSize: [40, 52],
-          iconAnchor: [20, 48],
+          iconSize: [44, 56],
+          iconAnchor: [22, 50],
         });
 
         const marker = L.marker([rep.latitude, rep.longitude], { icon: hazardIcon });
@@ -427,7 +498,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     }
   }, [activeLayers, effectiveLat, effectiveLon, shelters, reports, lang]);
 
-  // Render Evacuation Route Polyline
+  // Render Evacuation Route Polyline (Requirement 3)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -443,7 +514,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       );
 
       const polyline = L.polyline(latLngs, {
-        color: '#1E88E5',
+        color: '#1A73E8',
         weight: 6,
         opacity: 0.9,
         lineJoin: 'round',
@@ -456,16 +527,16 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
   return (
     <div className={`relative w-full h-full rounded-3xl overflow-hidden ${className}`}>
-      {/* 1. The Leaflet Map DOM Element */}
+      {/* 1. Leaflet Map DOM Element */}
       <div ref={mapContainerRef} className="w-full h-full" />
 
       {/* 2. Top-Left: Search & Location Pill Banner */}
       <div className="absolute top-3 left-3 z-[400] flex items-center space-x-2">
         <button
           onClick={onOpenSearch}
-          className="bg-white/95 dark:bg-[#131D2A]/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-[#CBD5E1] dark:border-[#24344B] shadow-md flex items-center space-x-2 text-xs font-bold text-[#1F2937] dark:text-white hover:scale-105 transition-all cursor-pointer"
+          className="bg-white/95 dark:bg-[#131D2A]/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-[#CBD5E1] dark:border-[#24344B] shadow-md flex items-center space-x-2 text-xs font-bold text-[#1F2937] dark:text-white hover:scale-102 active:scale-98 transition-all cursor-pointer"
         >
-          <span className={`w-2 h-2 rounded-full ${isGpsActive ? 'bg-[#2E7D32] animate-pulse' : 'bg-amber-500'}`} />
+          <span className={`w-2 h-2 rounded-full ${isGpsActive ? 'bg-[#10B981] animate-pulse' : 'bg-amber-500'}`} />
           <span className="truncate max-w-[150px] sm:max-w-[220px]">{locationName}</span>
         </button>
 
@@ -477,89 +548,113 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         )}
       </div>
 
-      {/* 3. Top-Right Floating Controls: Locate Me & Layer Filters */}
+      {/* 3. Top-Right: Google Maps-Style "Locate Me" FAB (Requirement 2) */}
       <div className="absolute top-3 right-3 z-[400] flex flex-col space-y-2">
-        {/* Locate Me Button (Requirement 7) */}
         <button
           onClick={handleLocateMe}
           disabled={isLocating}
-          className="w-10 h-10 rounded-2xl bg-white dark:bg-[#131D2A] border border-[#CBD5E1] dark:border-[#24344B] shadow-md flex items-center justify-center text-[#0F4C81] dark:text-[#81D4FA] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+          className="w-11 h-11 rounded-full bg-white dark:bg-[#131D2A] border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center cursor-pointer group"
           title={lang === 'hi' ? 'मेरा स्थान खोजें' : 'Locate Me (Current GPS)'}
           aria-label="Locate Me"
         >
-          <Navigation className={`w-5 h-5 ${isLocating ? 'animate-spin text-[#1E88E5]' : ''}`} />
+          {isLocating ? (
+            <div className="w-5 h-5 rounded-full border-2 border-[#1A73E8] border-t-transparent animate-spin" />
+          ) : (
+            <svg
+              width="21"
+              height="21"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`transition-colors ${
+                isGpsActive
+                  ? 'text-[#1A73E8] dark:text-[#60A5FA]'
+                  : 'text-gray-600 dark:text-gray-300 group-hover:text-[#1A73E8]'
+              }`}
+            >
+              <circle cx="12" cy="12" r="7" />
+              <line x1="12" y1="2" x2="12" y2="5" />
+              <line x1="12" y1="19" x2="12" y2="22" />
+              <line x1="2" y1="12" x2="5" y2="12" />
+              <line x1="19" y1="12" x2="22" y2="12" />
+              <circle cx="12" cy="12" r="2" fill="currentColor" />
+            </svg>
+          )}
         </button>
 
-        {/* Refresh GPS Button */}
+        {/* Secondary Refresh Button */}
         {onRefreshGPS && (
           <button
             onClick={() => {
               setIsLocating(true);
               onRefreshGPS();
-              setTimeout(() => setIsLocating(false), 1200);
+              setTimeout(() => setIsLocating(false), 1000);
             }}
-            className="w-10 h-10 rounded-2xl bg-white dark:bg-[#131D2A] border border-[#CBD5E1] dark:border-[#24344B] shadow-md flex items-center justify-center text-[#4B5563] dark:text-[#CBD5E1] hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            title={lang === 'hi' ? 'जीपीएस पुनः लोड करें' : 'Refresh GPS Position'}
+            className="w-11 h-11 rounded-full bg-white dark:bg-[#131D2A] border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center justify-center text-gray-500 dark:text-gray-300 hover:text-[#1F2937] dark:hover:text-white cursor-pointer"
+            title={lang === 'hi' ? 'जीपीएस पुनः लोड करें' : 'Refresh Telemetry'}
             aria-label="Refresh GPS"
           >
-            <RefreshCw className={`w-4 h-4 ${isLocating ? 'animate-spin text-[#0F4C81]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isLocating ? 'animate-spin text-[#1A73E8]' : ''}`} />
           </button>
         )}
       </div>
 
-      {/* 4. Bottom-Left: Quick Filter Layer Chips */}
-      <div className="absolute bottom-3 left-3 z-[400] flex flex-wrap items-center gap-1.5 max-w-[260px] sm:max-w-none">
+      {/* 4. Bottom-Left: Modern Google Maps Category Filter Chips (Requirement 3) */}
+      <div className="absolute bottom-4 left-3 z-[400] flex flex-wrap items-center gap-1.5 max-w-[270px] sm:max-w-none">
         <button
           onClick={() => setActiveLayers((prev) => ({ ...prev, shelters: !prev.shelters }))}
-          className={`px-2.5 py-1 rounded-full text-[10px] font-bold border shadow-xs transition-all cursor-pointer flex items-center space-x-1 ${
+          className={`px-3 py-1.5 rounded-full text-xs font-bold border shadow-sm transition-all cursor-pointer flex items-center space-x-1.5 active:scale-95 ${
             activeLayers.shelters
-              ? 'bg-[#2E7D32] text-white border-[#2E7D32]'
-              : 'bg-white/90 dark:bg-[#1B2738]/90 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700'
+              ? 'bg-[#059669] text-white border-[#059669] shadow-emerald-500/20'
+              : 'bg-white/95 dark:bg-[#1B2738]/95 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
           }`}
         >
-          <Home className="w-3 h-3" />
+          <Home className="w-3.5 h-3.5" />
           <span>{lang === 'hi' ? 'आश्रय स्थल' : 'Shelters'}</span>
         </button>
 
         <button
           onClick={() => setActiveLayers((prev) => ({ ...prev, hazards: !prev.hazards }))}
-          className={`px-2.5 py-1 rounded-full text-[10px] font-bold border shadow-xs transition-all cursor-pointer flex items-center space-x-1 ${
+          className={`px-3 py-1.5 rounded-full text-xs font-bold border shadow-sm transition-all cursor-pointer flex items-center space-x-1.5 active:scale-95 ${
             activeLayers.hazards
-              ? 'bg-[#DC2626] text-white border-[#DC2626]'
-              : 'bg-white/90 dark:bg-[#1B2738]/90 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700'
+              ? 'bg-[#DC2626] text-white border-[#DC2626] shadow-red-500/20'
+              : 'bg-white/95 dark:bg-[#1B2738]/95 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
           }`}
         >
-          <AlertTriangle className="w-3 h-3" />
+          <AlertTriangle className="w-3.5 h-3.5" />
           <span>{lang === 'hi' ? 'आपदा खतरे' : 'Hazards'}</span>
         </button>
 
         <button
           onClick={() => setActiveLayers((prev) => ({ ...prev, hospitals: !prev.hospitals }))}
-          className={`px-2.5 py-1 rounded-full text-[10px] font-bold border shadow-xs transition-all cursor-pointer flex items-center space-x-1 ${
+          className={`px-3 py-1.5 rounded-full text-xs font-bold border shadow-sm transition-all cursor-pointer flex items-center space-x-1.5 active:scale-95 ${
             activeLayers.hospitals
-              ? 'bg-[#D97706] text-white border-[#D97706]'
-              : 'bg-white/90 dark:bg-[#1B2738]/90 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700'
+              ? 'bg-[#D97706] text-white border-[#D97706] shadow-amber-500/20'
+              : 'bg-white/95 dark:bg-[#1B2738]/95 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
           }`}
         >
-          <Hospital className="w-3 h-3" />
+          <Hospital className="w-3.5 h-3.5" />
           <span>{lang === 'hi' ? 'अस्पताल' : 'Hospitals'}</span>
         </button>
       </div>
 
-      {/* 5. Selected Place Bottom Drawer / Info Sheet */}
+      {/* 5. Selected Place Bottom Drawer / Info Sheet (Google Maps Card Style) */}
       {selectedPlace && (
         <div className="absolute bottom-3 left-3 right-3 z-[500] max-w-md mx-auto bg-white dark:bg-[#131D2A] border border-[#CBD5E1] dark:border-[#24344B] rounded-3xl p-4 shadow-2xl space-y-3 animate-in fade-in slide-in-from-bottom-4">
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-3 overflow-hidden">
               <div
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm ${
+                className={`w-11 h-11 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm ${
                   selectedPlace.type === 'shelter'
-                    ? 'bg-[#2E7D32]'
+                    ? 'bg-[#059669]'
                     : selectedPlace.type === 'hospital'
-                    ? 'bg-[#D97706]'
-                    : selectedPlace.type === 'report'
                     ? 'bg-[#DC2626]'
-                    : 'bg-[#1E88E5]'
+                    : selectedPlace.type === 'report'
+                    ? 'bg-[#D97706]'
+                    : 'bg-[#1A73E8]'
                 }`}
               >
                 {selectedPlace.type === 'shelter' ? (
@@ -585,7 +680,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
             <button
               onClick={() => setSelectedPlace(null)}
-              className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
               aria-label="Close details"
             >
               <X className="w-4 h-4" />
@@ -596,24 +691,73 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
             {selectedPlace.description}
           </p>
 
+          {/* Shelter Occupancy Meter */}
+          {selectedPlace.type === 'shelter' && selectedPlace.capacity && (
+            <div className="bg-gray-50 dark:bg-[#1B2738] p-2.5 rounded-2xl space-y-1.5 border border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-between text-[11px] font-bold text-gray-700 dark:text-gray-300">
+                <span className="flex items-center space-x-1">
+                  <Users className="w-3.5 h-3.5 text-[#059669]" />
+                  <span>{lang === 'hi' ? 'आश्रय क्षमता' : 'Capacity Status'}</span>
+                </span>
+                <span>
+                  {selectedPlace.occupancy || 0} / {selectedPlace.capacity} ({Math.round(((selectedPlace.occupancy || 0) / selectedPlace.capacity) * 100)}%)
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-[#059669] h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.round(((selectedPlace.occupancy || 0) / selectedPlace.capacity) * 100))}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Mode Selector & Action Buttons */}
           <div className="flex items-center space-x-2 pt-1">
             {selectedPlace.type !== 'user' && (
-              <button
-                onClick={() => {
-                  if (onNavigateTo) {
-                    onNavigateTo(selectedPlace.latitude, selectedPlace.longitude, selectedPlace.title, routingMode);
-                  } else {
-                    window.open(
-                      `https://www.google.com/maps/dir/?api=1&destination=${selectedPlace.latitude},${selectedPlace.longitude}`,
-                      '_blank'
-                    );
-                  }
-                }}
-                className="flex-1 py-2.5 px-3 bg-[#0F4C81] hover:bg-[#0D3B66] text-white rounded-2xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md transition-all active:scale-98 cursor-pointer"
-              >
-                <Navigation className="w-4 h-4" />
-                <span>{lang === 'hi' ? 'रास्ता देखें' : 'Navigate Here'}</span>
-              </button>
+              <>
+                <div className="flex items-center bg-gray-100 dark:bg-[#1B2738] rounded-2xl p-1 border border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => setRoutingMode('driving')}
+                    className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+                      routingMode === 'driving'
+                        ? 'bg-white dark:bg-[#131D2A] text-[#1A73E8] shadow-xs'
+                        : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                    title="Driving Route"
+                  >
+                    <Car className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setRoutingMode('walking')}
+                    className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+                      routingMode === 'walking'
+                        ? 'bg-white dark:bg-[#131D2A] text-[#1A73E8] shadow-xs'
+                        : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                    title="Walking Route"
+                  >
+                    <Footprints className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (onNavigateTo) {
+                      onNavigateTo(selectedPlace.latitude, selectedPlace.longitude, selectedPlace.title, routingMode);
+                    } else {
+                      window.open(
+                        `https://www.google.com/maps/dir/?api=1&destination=${selectedPlace.latitude},${selectedPlace.longitude}`,
+                        '_blank'
+                      );
+                    }
+                  }}
+                  className="flex-1 py-2.5 px-3 bg-[#1A73E8] hover:bg-[#1557B0] text-white rounded-2xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md transition-all active:scale-98 cursor-pointer"
+                >
+                  <Navigation className="w-4 h-4" />
+                  <span>{lang === 'hi' ? 'रास्ता देखें' : 'Get Directions'}</span>
+                </button>
+              </>
             )}
 
             {selectedPlace.contactPhone && (

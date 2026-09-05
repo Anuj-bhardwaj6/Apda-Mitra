@@ -20,6 +20,7 @@ interface InteractiveMapProps {
   locationName: string;
   isGpsActive?: boolean;
   isFallback?: boolean;
+  accuracyMeters?: number;
   onRefreshGPS?: () => void;
   onLocationSelect?: (lat: number, lon: number, name?: string) => void;
   onSearchOpen?: () => void;
@@ -40,6 +41,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   locationName,
   isGpsActive = false,
   isFallback = false,
+  accuracyMeters,
   onRefreshGPS,
   onLocationSelect,
   onSearchOpen,
@@ -92,6 +94,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         isLiveTracking={isLiveTracking}
         isGpsActive={isGpsActive}
         isFallback={isFallback}
+        accuracyMeters={accuracyMeters}
         onRefreshGPS={onRefreshGPS}
         onToggleLiveTracking={() => setIsLiveTracking((prev) => !prev)}
         onNavigateTo={handleNavigateTo}

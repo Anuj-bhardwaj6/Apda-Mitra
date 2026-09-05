@@ -128,51 +128,116 @@ body {
   z-index: 10 !important;
 }
 
-/* Google Maps-Style Pulsing Blue Location Beacon */
-.gps-pulse-container {
+/* Google Maps-Style Clean Pulsing Blue Location Dot */
+.gmaps-location-container {
   position: relative;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
 }
 
-.gps-pulse-ring {
+.gmaps-pulse-ring {
   position: absolute;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background-color: rgba(30, 136, 229, 0.25);
-  animation: gps-pulse-anim 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+  background-color: rgba(66, 133, 244, 0.28);
+  animation: gmaps-sonar-pulse 2.2s infinite ease-out;
   pointer-events: none;
 }
 
-.gps-pulse-dot {
+.gmaps-solid-dot {
   position: relative;
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   background-color: #1A73E8;
   border: 3px solid #FFFFFF;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(26, 115, 232, 0.5);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.35), 0 0 12px rgba(26, 115, 232, 0.5);
   z-index: 2;
+  transition: transform 0.2s ease;
 }
 
-@keyframes gps-pulse-anim {
+.gmaps-solid-dot:hover {
+  transform: scale(1.15);
+}
+
+/* Fallback location dot (Amber warning when GPS is blocked) */
+.gmaps-fallback-dot {
+  background-color: #D97706 !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.35), 0 0 12px rgba(217, 119, 6, 0.5) !important;
+}
+
+.gmaps-fallback-ring {
+  background-color: rgba(217, 119, 6, 0.25) !important;
+}
+
+@keyframes gmaps-sonar-pulse {
   0% {
-    transform: scale(0.5);
-    opacity: 1;
+    transform: scale(0.35);
+    opacity: 0.95;
   }
-  70% {
-    transform: scale(1.6);
-    opacity: 0.2;
+  65% {
+    transform: scale(1.65);
+    opacity: 0.22;
   }
   100% {
-    transform: scale(2.2);
+    transform: scale(2.4);
     opacity: 0;
   }
+}
+
+/* OpenStreetMap Tile Filter for Crisp Modern Look */
+.leaflet-tile {
+  filter: saturate(1.06) contrast(1.02);
+}
+
+.dark .leaflet-tile {
+  filter: brightness(0.7) invert(1) contrast(2.2) hue-rotate(195deg) saturate(0.3) brightness(0.85);
+}
+
+/* Leaflet Zoom Control Modern Google Maps Style */
+.leaflet-control-zoom {
+  border: none !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+  margin-right: 14px !important;
+  margin-bottom: 24px !important;
+}
+
+.leaflet-control-zoom a {
+  background-color: #FFFFFF !important;
+  color: #374151 !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.dark .leaflet-control-zoom a {
+  background-color: #131D2A !important;
+  color: #F3F4F6 !important;
+  border-bottom: 1px solid #1F2E42 !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #F8FAFC !important;
+  color: #1A73E8 !important;
+}
+
+.dark .leaflet-control-zoom a:hover {
+  background-color: #1F2E42 !important;
+  color: #60A5FA !important;
 }
 
 /* Cluster Marker Badges */
