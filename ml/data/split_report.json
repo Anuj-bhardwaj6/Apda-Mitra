@@ -1,0 +1,202 @@
+{
+  "dataset_name": "Apda Mitra Time-Aware Leakage-Safe Splits",
+  "generated_timestamp_utc": "2026-09-14T06:47:22.672899+00:00",
+  "methodology": {
+    "strategy": "Forward-Chaining Chronological Temporal Split",
+    "justification": "Evaluates real-world deployment where models trained on historical records must predict future landslide seasons. Random train/test splits cause severe optimistic performance leakage by training on future events to predict the past and splitting identical meteorological storm events. Calendar-year boundaries ensure full June-September monsoon seasons are evaluated without fracture.",
+    "cutoffs": {
+      "train_period": "1990-01-29 to 2015-12-31",
+      "validation_period": "2016-01-01 to 2017-12-31",
+      "test_period": "2018-01-01 to 2021-06-12"
+    }
+  },
+  "split_summaries": {
+    "train": {
+      "total_samples": 1992,
+      "percentage_of_total": 71.24,
+      "date_range": {
+        "start_date": "1990-01-29",
+        "end_date": "2015-12-29"
+      },
+      "class_balance": {
+        "positive_count": 662,
+        "negative_count": 1330,
+        "positive_percentage": 33.23,
+        "negative_percentage": 66.77,
+        "negative_to_positive_ratio": 2.01
+      },
+      "samples_by_state": {
+        "Arunachal Pradesh": 114,
+        "Assam": 190,
+        "Himachal Pradesh": 437,
+        "Manipur": 234,
+        "Meghalaya": 82,
+        "Mizoram": 80,
+        "Nagaland": 180,
+        "Sikkim": 130,
+        "Tripura": 13,
+        "Uttarakhand": 532
+      },
+      "missing_values_count": 0
+    },
+    "validation": {
+      "total_samples": 604,
+      "percentage_of_total": 21.6,
+      "date_range": {
+        "start_date": "2016-01-14",
+        "end_date": "2017-12-14"
+      },
+      "class_balance": {
+        "positive_count": 203,
+        "negative_count": 401,
+        "positive_percentage": 33.61,
+        "negative_percentage": 66.39,
+        "negative_to_positive_ratio": 1.98
+      },
+      "samples_by_state": {
+        "Arunachal Pradesh": 106,
+        "Assam": 89,
+        "Himachal Pradesh": 102,
+        "Manipur": 65,
+        "Meghalaya": 21,
+        "Mizoram": 26,
+        "Nagaland": 79,
+        "Sikkim": 20,
+        "Tripura": 4,
+        "Uttarakhand": 92
+      },
+      "missing_values_count": 0
+    },
+    "test": {
+      "total_samples": 200,
+      "percentage_of_total": 7.15,
+      "date_range": {
+        "start_date": "2018-04-27",
+        "end_date": "2021-06-12"
+      },
+      "class_balance": {
+        "positive_count": 67,
+        "negative_count": 133,
+        "positive_percentage": 33.5,
+        "negative_percentage": 66.5,
+        "negative_to_positive_ratio": 1.99
+      },
+      "samples_by_state": {
+        "Arunachal Pradesh": 2,
+        "Assam": 3,
+        "Himachal Pradesh": 85,
+        "Manipur": 7,
+        "Meghalaya": 11,
+        "Mizoram": 11,
+        "Nagaland": 14,
+        "Sikkim": 18,
+        "Tripura": 7,
+        "Uttarakhand": 42
+      },
+      "missing_values_count": 0
+    }
+  },
+  "state_distribution_matrix": {
+    "Arunachal Pradesh": {
+      "train": 114,
+      "validation": 106,
+      "test": 2,
+      "total": 222
+    },
+    "Assam": {
+      "train": 190,
+      "validation": 89,
+      "test": 3,
+      "total": 282
+    },
+    "Himachal Pradesh": {
+      "train": 437,
+      "validation": 102,
+      "test": 85,
+      "total": 624
+    },
+    "Manipur": {
+      "train": 234,
+      "validation": 65,
+      "test": 7,
+      "total": 306
+    },
+    "Meghalaya": {
+      "train": 82,
+      "validation": 21,
+      "test": 11,
+      "total": 114
+    },
+    "Mizoram": {
+      "train": 80,
+      "validation": 26,
+      "test": 11,
+      "total": 117
+    },
+    "Nagaland": {
+      "train": 180,
+      "validation": 79,
+      "test": 14,
+      "total": 273
+    },
+    "Sikkim": {
+      "train": 130,
+      "validation": 20,
+      "test": 18,
+      "total": 168
+    },
+    "Tripura": {
+      "train": 13,
+      "validation": 4,
+      "test": 7,
+      "total": 24
+    },
+    "Uttarakhand": {
+      "train": 532,
+      "validation": 92,
+      "test": 42,
+      "total": 666
+    }
+  },
+  "leakage_audit": {
+    "status": "PASSED_STRICT_LEAKAGE_AUDIT",
+    "temporal_order_verified": {
+      "train_max_date": "2015-12-29",
+      "val_min_date": "2016-01-14",
+      "val_max_date": "2017-12-14",
+      "test_min_date": "2018-04-27",
+      "is_train_before_val": true,
+      "is_val_before_test": true,
+      "temporal_separation_days_train_val": 16,
+      "temporal_separation_days_val_test": 134
+    },
+    "event_id_disjointness": {
+      "train_val_overlap_count": 0,
+      "train_test_overlap_count": 0,
+      "val_test_overlap_count": 0,
+      "all_splits_mutually_exclusive": true
+    },
+    "spatiotemporal_event_collisions": {
+      "train_val_collision_count": 0,
+      "train_test_collision_count": 0,
+      "val_test_collision_count": 0
+    },
+    "positive_event_coordinate_isolation": {
+      "positive_coords_train_test_overlap": 0,
+      "zero_positive_coordinate_leakage": true
+    },
+    "exact_feature_vector_duplication": {
+      "train_val_duplicate_features": 0,
+      "train_test_duplicate_features": 0,
+      "val_test_duplicate_features": 0
+    },
+    "scaler_preprocessing_leakage_prevented": true,
+    "raw_physical_units_preserved": true
+  },
+  "file_artifacts": {
+    "train_csv": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\train.csv",
+    "validation_csv": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\validation.csv",
+    "test_csv": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\test.csv",
+    "source_dataset_csv": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\apda_mitra_training_dataset.csv"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "features": [
+    "rain_24h",
+    "rain_7d",
+    "soil_moisture",
+    "elevation",
+    "slope"
+  ],
+  "feature_count": 5,
+  "target": "landslide",
+  "feature_importances": {
+    "soil_moisture": 0.34602096676826477,
+    "rain_24h": 0.2905958294868469,
+    "rain_7d": 0.2393818348646164,
+    "slope": 0.08787092566490173,
+    "elevation": 0.03613048791885376
+  },
+  "scaling": "StandardScaler"
+}

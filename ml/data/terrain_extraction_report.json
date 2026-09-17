@@ -1,0 +1,74 @@
+{
+  "dem_product": "Copernicus DEM GLO-30 (Copernicus Digital Elevation Model 30-meter global product, European Space Agency / Airbus)",
+  "dem_resolution": "30 meters (1 arc-second / ~0.00027778 degrees)",
+  "coordinate_reference_system": "EPSG:4326 (WGS84 horizontal datum, EGM2008 geoid orthometric height)",
+  "terrain_calculation_method": {
+    "elevation": "Direct pixel elevation extraction from Copernicus DEM GLO-30 Cloud-Optimized GeoTIFF (meters a.s.l.)",
+    "slope": "Horn (1981) 3x3 weighted finite-difference gradient with geodesic metric cell spacing conversion, degrees [0, 90]",
+    "aspect": "Compass azimuth of steepest downward slope in degrees [0, 360] clockwise from True North (GDAL convention)",
+    "curvature": "Zevenbergen & Thorne (1987) profile curvature along gradient direction; negative = convex (accelerating flow, ridges), positive = concave (decelerating flow, gullies)",
+    "edge_handling": "Clamped window extraction with edge-replication padding for coordinates lying on tile boundaries",
+    "geodesic_metric_scaling": "WGS84 ellipsoidal meridional and parallel arc length calculated per event latitude"
+  },
+  "software_libraries": {
+    "rasterio": "1.5.1",
+    "numpy": "2.4.2",
+    "pandas": "2.3.3",
+    "sqlite3": "3.50.4"
+  },
+  "dataset_summary": {
+    "input_dataset": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\clean_landslide_events.csv",
+    "output_features_csv": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\landslide_terrain_features.csv",
+    "cache_database": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\cache\\terrain_cache.sqlite",
+    "total_events": 932,
+    "successful_extractions": 932,
+    "failed_extractions": 0,
+    "missing_values": 0,
+    "missing_values_by_column": {
+      "event_id": 0,
+      "latitude": 0,
+      "longitude": 0,
+      "elevation": 0,
+      "slope": 0,
+      "aspect": 0,
+      "curvature": 0
+    },
+    "unique_copernicus_tiles_accessed": 47,
+    "all_features_complete_without_fill_values": true
+  },
+  "terrain_feature_summary_statistics": {
+    "elevation": {
+      "mean": 1321.6934,
+      "std": 969.0712,
+      "min": 19.55,
+      "median": 1207.1,
+      "max": 5894.65
+    },
+    "slope": {
+      "mean": 21.1344,
+      "std": 13.1137,
+      "min": 0.0,
+      "median": 20.235,
+      "max": 60.4
+    },
+    "aspect": {
+      "mean": 181.5331,
+      "std": 106.8424,
+      "min": 0.0,
+      "median": 186.835,
+      "max": 359.57
+    },
+    "curvature": {
+      "mean": -0.0,
+      "std": 0.0071,
+      "min": -0.0296,
+      "median": 0.0001,
+      "max": 0.0511
+    }
+  },
+  "execution_telemetry": {
+    "elapsed_seconds": 360.87,
+    "max_workers": 6,
+    "generated_timestamp_utc": "2026-09-14T06:25:19.726146+00:00"
+  }
+}

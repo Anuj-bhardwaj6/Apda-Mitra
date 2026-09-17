@@ -1,0 +1,86 @@
+{
+  "title": "Apda Mitra Landslide Inventory Data Quality Report",
+  "timestamp_utc": "2026-09-12T17:03:44.857257+00:00",
+  "input_file": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\Apda_Mitra_Verified_Landslide_Inventory_v2.csv",
+  "output_clean_file": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\clean_landslide_events.csv",
+  "total_input_records": 932,
+  "total_clean_records": 932,
+  "total_records_removed": 0,
+  "records_removed_by_reason": [],
+  "target_region_states": [
+    "Himachal Pradesh",
+    "Uttarakhand",
+    "Sikkim",
+    "Arunachal Pradesh",
+    "Assam",
+    "Meghalaya",
+    "Nagaland",
+    "Manipur",
+    "Mizoram",
+    "Tripura"
+  ],
+  "state_distribution": {
+    "Uttarakhand": 222,
+    "Himachal Pradesh": 208,
+    "Manipur": 102,
+    "Assam": 94,
+    "Nagaland": 91,
+    "Arunachal Pradesh": 74,
+    "Sikkim": 56,
+    "Mizoram": 39,
+    "Meghalaya": 38,
+    "Tripura": 8
+  },
+  "source_catalog_distribution": {
+    "GLC": 931,
+    "LRC": 1
+  },
+  "landslide_category_distribution": {
+    "Landslide": 815,
+    "Mudslide": 57,
+    "Rock fall": 33,
+    "Debris flow": 11,
+    "Complex": 9,
+    "Translational slide": 3,
+    "Unknown": 2,
+    "Other": 1,
+    "rock_fall": 1
+  },
+  "top_landslide_triggers": {
+    "Downpour": 421,
+    "Rain": 210,
+    "Continuous rain": 181,
+    "Unknown": 58,
+    "Monsoon": 29,
+    "Construction": 11,
+    "Mining": 9,
+    "Snowfall/snowmelt": 5,
+    "Other": 3,
+    "Flooding": 3
+  },
+  "temporal_coverage": {
+    "min_date": "1990-01-29",
+    "max_date": "2021-06-12",
+    "start_year": 1990,
+    "end_year": 2021
+  },
+  "missing_values_audit": {
+    "raw_missing_counts": {
+      "location_description": 10,
+      "fatality_count": 195,
+      "injury_count": 562,
+      "source_link": 1,
+      "source_record_id": 223,
+      "location_accuracy": 1
+    },
+    "clean_missing_counts": {
+      "location_description": 10,
+      "location_accuracy": 1,
+      "fatality_count": 195,
+      "injury_count": 562,
+      "source_record_id": 223,
+      "source_link": 1
+    },
+    "note": "Per requirements, missing fields (e.g. fatality/injury counts, secondary descriptions) are preserved as raw nulls without invention."
+  }
+}

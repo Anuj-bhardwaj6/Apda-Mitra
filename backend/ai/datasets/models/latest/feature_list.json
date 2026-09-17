@@ -1,0 +1,15 @@
+[
+  "copernicus_elevation_m",
+  "copernicus_slope_deg",
+  "copernicus_aspect_deg",
+  "copernicus_plan_curvature",
+  "copernicus_profile_curvature",
+  "copernicus_twi",
+  "gpm_imerg_rainfall_1d_mm",
+  "gpm_imerg_rainfall_3d_mm",
+  "gpm_imerg_rainfall_7d_mm",
+  "gpm_imerg_peak_intensity_mm_h",
+  "smap_surface_moisture_m3m3",
+  "smap_rootzone_moisture_m3m3",
+  "smap_soil_saturation_ratio"
+]

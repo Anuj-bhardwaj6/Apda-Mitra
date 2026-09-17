@@ -1,0 +1,73 @@
+{
+  "title": "Apda Mitra Historical Landslide Inventory Summary (NASA COOLR / GSI)",
+  "generated_at": "2026-09-12T16:22:34.948746+00:00",
+  "total_verified_events": 73,
+  "target_states_covered": 10,
+  "temporal_coverage": {
+    "start_year": 2010,
+    "end_year": 2024,
+    "splits": {
+      "train_2000_2021": 29,
+      "validation_2022_2023": 32,
+      "test_2024_2025": 12
+    }
+  },
+  "state_wise_distribution": {
+    "Himachal Pradesh": 16,
+    "Uttarakhand": 14,
+    "Sikkim": 6,
+    "Arunachal Pradesh": 6,
+    "Assam": 6,
+    "Meghalaya": 6,
+    "Nagaland": 5,
+    "Manipur": 5,
+    "Mizoram": 5,
+    "Tripura": 4
+  },
+  "trigger_distribution": {
+    "monsoon_rain": 21,
+    "continuous_rain": 13,
+    "cloudburst": 8,
+    "torrential_rain": 7,
+    "downpour": 4,
+    "flooding_rain": 3,
+    "cyclone_remal_rain": 2,
+    "cyclone_remal": 2,
+    "monsoon_downpour": 1,
+    "monsoon_deluge": 1,
+    "intermittent_rain": 1,
+    "cloudburst_rain": 1,
+    "rock_wedge_failure": 1,
+    "toe_erosion_drainage": 1,
+    "glof_rain": 1,
+    "earthquake_rain": 1,
+    "rain_snowmelt": 1,
+    "urban_downpour": 1,
+    "tropical_depression": 1,
+    "continuous_deluge": 1,
+    "cyclone_remal_deluge": 1
+  },
+  "landslide_type_distribution": {
+    "debris_flow": 19,
+    "mudslide": 9,
+    "debris_slide": 8,
+    "rotational_slide": 7,
+    "rockfall": 7,
+    "translational_slide": 6,
+    "shallow_slide": 4,
+    "rockslide_debris": 1,
+    "flash_flood_debris": 1,
+    "massive_debris_flow": 1,
+    "moraine_dam_debris_flow": 1,
+    "rock_ice_avalanche": 1,
+    "slow_subsidence_slump": 1,
+    "debris_torrent": 1,
+    "complex_glof_debris": 1,
+    "seismic_rock_avalanche": 1,
+    "debris_avalanche": 1,
+    "massive_rotational_slide": 1,
+    "massive_debris_slide": 1,
+    "stone_quarry_scarp_collapse": 1
+  },
+  "csv_path": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\backend\\ai\\datasets\\raw\\coolr_10states_inventory.csv"
+}

@@ -1,0 +1,85 @@
+services:
+  # --- PostgreSQL 16 with PostGIS Spatial Extensions ---
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: apda_mitra_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-apda_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-apda_secure_password_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-apda_mitra_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-apda_admin} -d ${POSTGRES_DB:-apda_mitra_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - apda_net
+
+  # --- Redis In-Memory Cache & Session Broker ---
+  redis:
+    image: redis:7-alpine
+    container_name: apda_mitra_redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - apda_net
+
+  # --- APDA MITRA FastAPI Application ---
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apda_mitra_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - HOST=0.0.0.0
+      - PORT=8000
+      - POSTGRES_USER=${POSTGRES_USER:-apda_admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-apda_secure_password_2026}
+      - POSTGRES_DB=${POSTGRES_DB:-apda_mitra_db}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-apda_admin}:${POSTGRES_PASSWORD:-apda_secure_password_2026}@postgres:5432/${POSTGRES_DB:-apda_mitra_db}
+      - SYNC_DATABASE_URL=postgresql://${POSTGRES_USER:-apda_admin}:${POSTGRES_PASSWORD:-apda_secure_password_2026}@postgres:5432/${POSTGRES_DB:-apda_mitra_db}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-c847e9238bc27f91823abce12837f1a9238bc918237abcf192837461928374a5}
+      - JWT_SECRET=${JWT_SECRET:-9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - apda_net
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  apda_net:
+    driver: bridge

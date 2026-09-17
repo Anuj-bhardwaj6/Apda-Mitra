@@ -1,0 +1,40 @@
+{
+  "model_name": "Apda Mitra Landslide Risk XGBoost Classifier",
+  "algorithm": "XGBoost (Extreme Gradient Boosting)",
+  "xgboost_version": "2.1.4",
+  "training_timestamp_utc": "2026-09-14T06:51:44.021940+00:00",
+  "random_seed": 42,
+  "feature_list": [
+    "rainfall_1d",
+    "rainfall_3d",
+    "rainfall_7d",
+    "rainfall_15d",
+    "rainfall_30d",
+    "soil_moisture",
+    "soil_moisture_anomaly",
+    "elevation",
+    "slope",
+    "aspect",
+    "curvature"
+  ],
+  "target_column": "landslide",
+  "dataset_sizes": {
+    "train": 1992,
+    "validation": 604,
+    "test": 200,
+    "total": 2796
+  },
+  "best_hyperparameters": {
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "n_estimators": 302,
+    "min_child_weight": 3,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "scale_pos_weight": 2.009,
+    "reg_lambda": 2.0,
+    "eval_metric": "aucpr",
+    "early_stopping_rounds": 30
+  },
+  "model_file_path": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\models\\apda_mitra_xgboost.json"
+}

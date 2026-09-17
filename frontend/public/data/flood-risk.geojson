@@ -1,0 +1,97 @@
+{
+  "type": "FeatureCollection",
+  "name": "Apda-Mitra Flood Risk Inundation Zones",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "fld-01",
+        "name": "Chooralmala Valley Basin Inundation Zone",
+        "nameHi": "चूरलमला घाटी जलप्लावन क्षेत्र",
+        "category": "Flood Risk",
+        "risk_level": "critical",
+        "depth_m": 2.4,
+        "area_sqkm": 2.1,
+        "rainfall_mm": 68,
+        "status": "Red Alert - Immediate Evacuation",
+        "description": "High velocity flash inundation basin adjacent to primary river channel. Flood water depth exceeds 2.0 meters.",
+        "source": "Central Water Commission & Kerala SDMA",
+        "updated_at": "Live Sensor Network"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [76.1150, 11.6780],
+            [76.1260, 11.6740],
+            [76.1380, 11.6770],
+            [76.1450, 11.6840],
+            [76.1410, 11.6920],
+            [76.1290, 11.6900],
+            [76.1180, 11.6870],
+            [76.1150, 11.6780]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "fld-02",
+        "name": "Meppadi Lowland Drainage Overwash",
+        "nameHi": "मेप्पाडी निचला जलभराव क्षेत्र",
+        "category": "Flood Risk",
+        "risk_level": "high",
+        "depth_m": 1.4,
+        "area_sqkm": 1.35,
+        "rainfall_mm": 42,
+        "status": "Orange Alert - Severe Caution",
+        "description": "Agricultural lowland drainage basin with 1.4m standing water logging roads and approaches.",
+        "source": "NDMA Hydraulic Assessment",
+        "updated_at": "Live Sensor Network"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [76.1430, 11.6940],
+            [76.1550, 11.6910],
+            [76.1590, 11.7000],
+            [76.1480, 11.7040],
+            [76.1430, 11.6940]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "fld-03",
+        "name": "Kalpetta South Secondary Inundation Plain",
+        "nameHi": "कलपेट्टा दक्षिण बाढ़ क्षेत्र",
+        "category": "Flood Risk",
+        "risk_level": "moderate",
+        "depth_m": 0.6,
+        "area_sqkm": 0.82,
+        "rainfall_mm": 24,
+        "status": "Yellow Alert - Advisory Monitoring",
+        "description": "Minor water logging along feeder canals with minimal residential impact.",
+        "source": "District Water Resources",
+        "updated_at": "Live Sensor Network"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [76.1080, 11.6680],
+            [76.1180, 11.6650],
+            [76.1220, 11.6720],
+            [76.1120, 11.6750],
+            [76.1080, 11.6680]
+          ]
+        ]
+      }
+    }
+  ]
+}

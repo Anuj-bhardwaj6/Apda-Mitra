@@ -1,0 +1,29 @@
+{
+  "features": [
+    "rain_1d",
+    "rain_3d",
+    "rain_7d",
+    "rain_30d",
+    "soil_moisture",
+    "soil_moisture_anomaly",
+    "elevation",
+    "slope",
+    "aspect",
+    "curvature"
+  ],
+  "feature_count": 10,
+  "target": "landslide",
+  "feature_importances": {
+    "rain_3d": 0.31052717566490173,
+    "soil_moisture_anomaly": 0.16782435774803162,
+    "slope": 0.16350989043712616,
+    "rain_30d": 0.11092282831668854,
+    "rain_1d": 0.10467363893985748,
+    "rain_7d": 0.08909926563501358,
+    "soil_moisture": 0.05344284698367119,
+    "elevation": 0.0,
+    "aspect": 0.0,
+    "curvature": 0.0
+  },
+  "scaling": "StandardScaler"
+}

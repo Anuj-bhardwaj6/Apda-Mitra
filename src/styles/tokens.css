@@ -1,0 +1,46 @@
+:root {
+  /* Official Government & Citizen Trust Palette */
+  --color-gov-primary: #0F4C81;
+  --color-gov-deep: #123B5D;
+  --color-gov-bg: #F6F8FA;
+  --color-gov-surface: #FFFFFF;
+  --color-gov-neutral: #64748B;
+  --color-gov-text: #16202A;
+  --color-gov-text-muted: #5F6D7E;
+  --color-gov-border: #E4E7EC;
+
+  /* Status Colors */
+  --color-status-success: #2E7D32;
+  --color-status-warning: #F59E0B;
+  --color-status-danger: #C62828;
+  --color-status-info: #1976D2;
+
+  /* Soft Status Tints */
+  --color-status-success-light: #E8F5E9;
+  --color-status-warning-light: #FEF3C7;
+  --color-status-danger-light: #FFEBEE;
+  --color-status-info-light: #E8F1F8;
+
+  /* Touch & Radius Tokens */
+  --radius-sm: 12px;
+  --radius-btn: 16px;
+  --radius-card: 24px;
+  --radius-sheet: 28px;
+  --radius-full: 9999px;
+
+  /* Natural Consumer Elevation */
+  --shadow-subtle: 0 1px 3px rgba(15, 76, 129, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-card: 0 4px 16px -2px rgba(15, 76, 129, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  --shadow-elevation: 0 12px 32px -4px rgba(15, 76, 129, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+  --shadow-sheet: 0 -8px 32px rgba(15, 76, 129, 0.1);
+}
+
+.dark {
+  --color-gov-bg: #0B111A;
+  --color-gov-surface: #121A24;
+  --color-gov-text: #F1F5F9;
+  --color-gov-text-muted: #94A3B8;
+  --color-gov-border: #1E293B;
+  --shadow-card: 0 4px 16px -2px rgba(0, 0, 0, 0.4);
+  --shadow-elevation: 0 12px 32px -4px rgba(0, 0, 0, 0.6);
+}

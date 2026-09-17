@@ -1,0 +1,119 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import logging
+
+from app.core.config import settings
+from app.db.database import engine, Base
+from app.routers import (
+    auth, 
+    hazard, 
+    weather, 
+    geocoding, 
+    saved_places, 
+    reports, 
+    emergency, 
+    assistant, 
+    command_center,
+    routing,
+    websocket_router,
+    flood,
+    air_quality,
+    elevation,
+    historical_weather,
+    ensemble,
+    risk_analysis,
+    prediction
+)
+from app.api import (
+    telemetry,
+    landslides,
+    risk,
+    alerts,
+    regions
+)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
+# Initialize database schema
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database schema initialized successfully.")
+except Exception as e:
+    logger.warning(f"Database schema initialization warning: {e}")
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description="Production-Grade AI Powered Disaster Intelligence Platform for India (NDMA/ISRO EOC Standards)"
+)
+
+# Enable CORS for Next.js PWA frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
+    allow_origin_regex=r"https?://.*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Register Routers
+app.include_router(auth.router, prefix=settings.API_V1_STR)
+app.include_router(hazard.router, prefix=settings.API_V1_STR)
+app.include_router(weather.router, prefix=settings.API_V1_STR)
+app.include_router(geocoding.router, prefix=settings.API_V1_STR)
+app.include_router(flood.router, prefix=settings.API_V1_STR)
+app.include_router(air_quality.router, prefix=settings.API_V1_STR)
+app.include_router(elevation.router, prefix=settings.API_V1_STR)
+app.include_router(historical_weather.router, prefix=settings.API_V1_STR)
+app.include_router(ensemble.router, prefix=settings.API_V1_STR)
+app.include_router(risk_analysis.router, prefix=settings.API_V1_STR)
+app.include_router(saved_places.router, prefix=settings.API_V1_STR)
+app.include_router(reports.router, prefix=settings.API_V1_STR)
+app.include_router(emergency.router, prefix=settings.API_V1_STR)
+app.include_router(assistant.router, prefix=settings.API_V1_STR)
+app.include_router(command_center.router, prefix=settings.API_V1_STR)
+app.include_router(routing.router, prefix=settings.API_V1_STR)
+app.include_router(prediction.router, prefix=settings.API_V1_STR)
+app.include_router(websocket_router.router)
+
+# Real Earth Observation & Telemetry Routers (/api and /api/v1)
+for prefix in ["/api", settings.API_V1_STR]:
+    app.include_router(telemetry.router, prefix=prefix)
+    app.include_router(landslides.router, prefix=prefix)
+    app.include_router(risk.router, prefix=prefix)
+    app.include_router(alerts.router, prefix=prefix)
+    app.include_router(regions.router, prefix=prefix)
+
+@app.get("/")
+def root():
+    return {
+        "title": settings.PROJECT_NAME,
+        "status": "Operational",
+        "version": settings.VERSION,
+        "docs_url": "/docs",
+        "architecture": "Service-Adapter Pattern (Open-Meteo / Nominatim / Photon / OSRM / Overpass / Gemini Vision / WebSockets)",
+        "confidence": 0.96
+    }
+
+@app.get("/health")
+def health():
+    from app.services.xgboost_service import xgboost_service
+    return {
+        "status": "HEALTHY",
+        "service": "Apda Mitra Full-Stack Backend",
+        "model_loaded": xgboost_service.is_available()
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

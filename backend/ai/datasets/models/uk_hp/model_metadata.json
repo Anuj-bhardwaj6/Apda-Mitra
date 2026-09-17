@@ -1,0 +1,37 @@
+{
+  "model_name": "Apda Mitra XGBoost Landslide Classifier (Uttarakhand + Himachal Pradesh V1)",
+  "algorithm": "XGBoost (Extreme Gradient Boosting)",
+  "version": "1.0.0",
+  "created_at": "2026-09-12T16:18:03.113410+00:00",
+  "training_region": "Uttarakhand + Himachal Pradesh (Western Himalayas)",
+  "train_samples": 124,
+  "val_samples": 27,
+  "test_samples": 27,
+  "features": [
+    "rain_24h",
+    "rain_7d",
+    "soil_moisture",
+    "elevation",
+    "slope"
+  ],
+  "metrics": {
+    "accuracy": 0.963,
+    "precision": 0.875,
+    "recall": 1.0,
+    "f1": 0.9333,
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "confusion_matrix": {
+      "true_negative": 19,
+      "false_positive": 1,
+      "false_negative": 0,
+      "true_positive": 7
+    }
+  },
+  "risk_thresholds": {
+    "low": 0.3,
+    "moderate": 0.55,
+    "high": 0.75,
+    "critical": 0.88
+  }
+}

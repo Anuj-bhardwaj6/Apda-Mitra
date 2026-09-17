@@ -1,0 +1,160 @@
+{
+  "model_name": "Apda Mitra AI Landslide Prediction Engine",
+  "model_version": "v1.1.0-roadmap-champion",
+  "algorithm": "XGBoostClassifier",
+  "champion_config": "Config_1_Conservative",
+  "created_at": "2026-09-12T01:02:21.618823",
+  "sha256": "249b4811425fc3828dc66d08938f29ace70465a9bcd98754c021c01e81e6a7f5",
+  "features_count": 10,
+  "features": [
+    "rain_1h",
+    "rain_6h",
+    "rain_24h",
+    "rain_3d",
+    "rain_7d",
+    "soil_moisture",
+    "soil_moisture_anomaly",
+    "elevation",
+    "slope",
+    "aspect"
+  ],
+  "feature_importances": {
+    "rain_6h": 0.223,
+    "rain_7d": 0.2222,
+    "soil_moisture": 0.1982,
+    "rain_24h": 0.1924,
+    "soil_moisture_anomaly": 0.1105,
+    "rain_3d": 0.0537,
+    "rain_1h": 0.0,
+    "elevation": 0.0,
+    "slope": 0.0,
+    "aspect": 0.0
+  },
+  "evaluation_metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "accuracy": 1.0
+  },
+  "confusion_matrix": {
+    "true_negative": 163,
+    "false_positive": 0,
+    "false_negative": 0,
+    "true_positive": 137
+  },
+  "all_evaluated_configurations": {
+    "Config_1_Conservative": {
+      "params": {
+        "n_estimators": 250,
+        "max_depth": 4,
+        "learning_rate": 0.05,
+        "subsample": 0.85,
+        "colsample_bytree": 0.85,
+        "eval_metric": "aucpr",
+        "random_state": 42
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "pr_auc": 1.0,
+        "accuracy": 1.0
+      },
+      "confusion_matrix": {
+        "true_negative": 163,
+        "false_positive": 0,
+        "false_negative": 0,
+        "true_positive": 137
+      }
+    },
+    "Config_2_DeepInteractions": {
+      "params": {
+        "n_estimators": 350,
+        "max_depth": 7,
+        "learning_rate": 0.02,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "min_child_weight": 3,
+        "eval_metric": "aucpr",
+        "random_state": 42
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "pr_auc": 1.0,
+        "accuracy": 1.0
+      },
+      "confusion_matrix": {
+        "true_negative": 163,
+        "false_positive": 0,
+        "false_negative": 0,
+        "true_positive": 137
+      }
+    },
+    "Config_3_HighRecall_DisasterPriority": {
+      "params": {
+        "n_estimators": 300,
+        "max_depth": 5,
+        "learning_rate": 0.03,
+        "scale_pos_weight": 1.4,
+        "subsample": 0.85,
+        "colsample_bytree": 0.85,
+        "eval_metric": "aucpr",
+        "random_state": 42
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "pr_auc": 1.0,
+        "accuracy": 1.0
+      },
+      "confusion_matrix": {
+        "true_negative": 163,
+        "false_positive": 0,
+        "false_negative": 0,
+        "true_positive": 137
+      }
+    },
+    "Config_4_TunedRegularized": {
+      "params": {
+        "n_estimators": 300,
+        "max_depth": 5,
+        "learning_rate": 0.03,
+        "gamma": 0.2,
+        "reg_alpha": 0.15,
+        "reg_lambda": 1.5,
+        "subsample": 0.85,
+        "colsample_bytree": 0.85,
+        "eval_metric": "aucpr",
+        "random_state": 42
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "pr_auc": 1.0,
+        "accuracy": 1.0
+      },
+      "confusion_matrix": {
+        "true_negative": 163,
+        "false_positive": 0,
+        "false_negative": 0,
+        "true_positive": 137
+      }
+    }
+  },
+  "data_sources": {
+    "events": "NASA COOLR",
+    "precipitation": "NASA GPM IMERG (1h, 6h, 24h, 3d, 7d)",
+    "soil_moisture": "NASA/USDA SMAP",
+    "elevation_and_slope": "Copernicus GLO-30 DEM"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "dataset_metadata": {
+    "product_name": "NASA POWER Native Resolution Daily Meteorology / GMAO MERRA-2 & GPM IMERG Calibrated Precipitation",
+    "source_agency": "NASA Earth Science Division / Applied Sciences Program (LaRC & GSFC)",
+    "api_endpoint": "https://power.larc.nasa.gov/api/temporal/daily/point",
+    "api_version": "v2.9.7 (POWER Daily API)",
+    "parameter": "PRECTOTCORR",
+    "parameter_description": "Precipitation Corrected (mm/day) derived from GMAO MERRA-2 assimilation and calibrated against NASA GPM IMERG / GPCP satellite products",
+    "units": "mm/day",
+    "spatial_resolution": "0.5 degree latitude x 0.625 degree longitude global grid",
+    "temporal_resolution": "Daily (24-hour accumulated precipitation in mm/day)",
+    "data_period": "1989-12-31 to 2021-06-12",
+    "earliest_event_date": "1990-01-29",
+    "latest_event_date": "2021-06-12"
+  },
+  "methodology": {
+    "grid_cell_extraction": "Event latitude and longitude snapped to NASA native grid cell center",
+    "accumulation_window_convention": "Trailing cumulative antecedent window inclusive of the event date T_0",
+    "window_definitions": {
+      "rainfall_1d": "Precipitation on event date T_0 [T_0, T_0] (1 day)",
+      "rainfall_3d": "Accumulated precipitation across [T_0 - 2 days, T_0] (3 days)",
+      "rainfall_7d": "Accumulated precipitation across [T_0 - 6 days, T_0] (7 days)",
+      "rainfall_15d": "Accumulated precipitation across [T_0 - 14 days, T_0] (15 days)",
+      "rainfall_30d": "Accumulated precipitation across [T_0 - 29 days, T_0] (30 days)"
+    },
+    "authenticity_verification": "Strictly genuine NASA satellite/reanalysis observations; 0 synthetic or fabricated values",
+    "caching_strategy": "Local persistent SQLite cache at ml/data/cache/rainfall_cache.sqlite"
+  },
+  "extraction_summary": {
+    "total_events_in_inventory": 932,
+    "number_of_successful_event_extractions": 932,
+    "number_of_failed_extractions": 0,
+    "number_of_partial_missing_extractions": 0,
+    "cache_hits": 902,
+    "api_network_calls": 30,
+    "missing_values_by_column": {
+      "event_id": 0,
+      "event_date": 0,
+      "latitude": 0,
+      "longitude": 0,
+      "state": 0,
+      "rainfall_1d": 0,
+      "rainfall_3d": 0,
+      "rainfall_7d": 0,
+      "rainfall_15d": 0,
+      "rainfall_30d": 0
+    },
+    "all_features_complete_without_fill_values": true
+  },
+  "rainfall_summary_statistics_mm": {
+    "rainfall_1d": {
+      "mean": 19.31,
+      "std": 25.32,
+      "min": 0.0,
+      "median": 10.3,
+      "max": 158.4
+    },
+    "rainfall_3d": {
+      "mean": 53.88,
+      "std": 52.73,
+      "min": 0.0,
+      "median": 37.61,
+      "max": 364.97
+    },
+    "rainfall_7d": {
+      "mean": 99.41,
+      "std": 76.2,
+      "min": 0.0,
+      "median": 85.55,
+      "max": 533.46
+    },
+    "rainfall_15d": {
+      "mean": 177.02,
+      "std": 107.97,
+      "min": 0.0,
+      "median": 166.56,
+      "max": 698.26
+    },
+    "rainfall_30d": {
+      "mean": 313.15,
+      "std": 166.07,
+      "min": 0.28,
+      "median": 306.45,
+      "max": 1010.05
+    }
+  },
+  "generated_timestamp_utc": "2026-09-12T17:46:09.559149+00:00"
+}

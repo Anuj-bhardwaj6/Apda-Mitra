@@ -1,0 +1,133 @@
+{
+  "dataset_name": "Apda Mitra Dataset v1",
+  "version": "1.0.0",
+  "created_at": "2026-09-11T19:10:16.498267+00:00",
+  "sha256": "70fed8e6fedad09ec8f8fd1fe0449fbdaecff27447b2fcd0b5cc86e4eaff3cc4",
+  "total_records": 1500,
+  "target_column": "landslide",
+  "class_distribution": {
+    "landslide_positive_1": 750,
+    "landslide_negative_0": 750,
+    "positivity_ratio": 0.5
+  },
+  "splits": {
+    "train": 1048,
+    "val": 217,
+    "test": 235
+  },
+  "data_sources": {
+    "events": {
+      "name": "NASA COOLR (Cooperative Open Online Landslide Repository)",
+      "doi_or_url": "https://maps.nccs.nasa.gov/arcgis/rest/services/COOLR/COOLR_Events/MapServer/0",
+      "purpose": "Ground-truth landslide events and spatial presence labels"
+    },
+    "precipitation": {
+      "name": "NASA GPM IMERG (Integrated Multi-satellitE Retrievals for GPM)",
+      "doi_or_url": "https://gpm.nasa.gov/data/imerg",
+      "purpose": "High-resolution 0.1\u00b0 satellite rainfall accumulation and intensity"
+    },
+    "soil_moisture": {
+      "name": "NASA/USDA SMAP (Soil Moisture Active Passive)",
+      "doi_or_url": "https://nsidc.org/data/smap",
+      "purpose": "Surface 0-5cm and rootzone 0-100cm volumetric soil water content"
+    },
+    "elevation_and_slope": {
+      "name": "Copernicus GLO-30 (Global 30m Digital Elevation Model)",
+      "doi_or_url": "https://registry.opendata.aws/copernicus-dem/",
+      "purpose": "30-meter high-precision elevation, slope gradient, aspect, and curvature"
+    }
+  },
+  "feature_summary": {
+    "copernicus_elevation_m": {
+      "mean": 1500.297,
+      "std": 816.882,
+      "min": 267.6,
+      "max": 3793.3,
+      "null_count": 0
+    },
+    "copernicus_slope_deg": {
+      "mean": 21.023,
+      "std": 16.975,
+      "min": 0.0,
+      "max": 59.5,
+      "null_count": 0
+    },
+    "copernicus_aspect_deg": {
+      "mean": 181.049,
+      "std": 87.046,
+      "min": 0.1,
+      "max": 360.0,
+      "null_count": 0
+    },
+    "copernicus_plan_curvature": {
+      "mean": -0.021,
+      "std": 0.034,
+      "min": -0.165,
+      "max": 0.055,
+      "null_count": 0
+    },
+    "copernicus_profile_curvature": {
+      "mean": 0.02,
+      "std": 0.027,
+      "min": -0.043,
+      "max": 0.113,
+      "null_count": 0
+    },
+    "copernicus_twi": {
+      "mean": 6.471,
+      "std": 1.136,
+      "min": 3.87,
+      "max": 9.74,
+      "null_count": 0
+    },
+    "gpm_imerg_rainfall_1d_mm": {
+      "mean": 47.521,
+      "std": 51.53,
+      "min": 0.0,
+      "max": 253.54,
+      "null_count": 0
+    },
+    "gpm_imerg_rainfall_3d_mm": {
+      "mean": 120.834,
+      "std": 113.29,
+      "min": 0.41,
+      "max": 440.58,
+      "null_count": 0
+    },
+    "gpm_imerg_rainfall_7d_mm": {
+      "mean": 223.541,
+      "std": 196.198,
+      "min": 4.09,
+      "max": 657.77,
+      "null_count": 0
+    },
+    "gpm_imerg_peak_intensity_mm_h": {
+      "mean": 9.786,
+      "std": 10.405,
+      "min": 0.0,
+      "max": 54.92,
+      "null_count": 0
+    },
+    "smap_surface_moisture_m3m3": {
+      "mean": 0.296,
+      "std": 0.149,
+      "min": 0.016,
+      "max": 0.529,
+      "null_count": 0
+    },
+    "smap_rootzone_moisture_m3m3": {
+      "mean": 0.268,
+      "std": 0.134,
+      "min": 0.014,
+      "max": 0.501,
+      "null_count": 0
+    },
+    "smap_soil_saturation_ratio": {
+      "mean": 0.584,
+      "std": 0.269,
+      "min": 0.033,
+      "max": 0.99,
+      "null_count": 0
+    }
+  }
+}

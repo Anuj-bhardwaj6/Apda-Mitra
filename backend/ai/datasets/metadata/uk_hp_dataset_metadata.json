@@ -1,0 +1,27 @@
+{
+  "dataset_name": "Apda Mitra Landslide Dataset V1 (Uttarakhand + Himachal Pradesh)",
+  "created_at": "2026-09-12T16:17:23.570538+00:00",
+  "region": "Uttarakhand + Himachal Pradesh (Western Himalayas)",
+  "bounding_box": {
+    "min_lat": 28.7,
+    "max_lat": 33.3,
+    "min_lon": 75.5,
+    "max_lon": 81.2
+  },
+  "total_samples": 178,
+  "positive_samples": 50,
+  "negative_samples": 128,
+  "columns": [
+    "date",
+    "latitude",
+    "longitude",
+    "rain_24h",
+    "rain_7d",
+    "soil_moisture",
+    "elevation",
+    "slope",
+    "landslide"
+  ],
+  "csv_path": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\backend\\ai\\datasets\\processed\\apda_mitra_uk_hp_training.csv",
+  "parquet_path": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\backend\\ai\\datasets\\processed\\apda_mitra_uk_hp_training.parquet"
+}

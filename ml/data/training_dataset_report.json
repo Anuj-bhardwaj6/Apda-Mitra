@@ -1,0 +1,614 @@
+{
+  "dataset_name": "Apda Mitra Unified Landslide Training Dataset",
+  "assembly_timestamp_utc": "2026-09-14T06:41:51.882554+00:00",
+  "summary": {
+    "total_samples": 2796,
+    "positive_samples": 932,
+    "negative_samples": 1864,
+    "positive_pct": 33.33,
+    "negative_pct": 66.67,
+    "negative_to_positive_ratio": 2.0,
+    "date_range": {
+      "start_date": "1990-01-29",
+      "end_date": "2021-06-12"
+    },
+    "features_count": 11,
+    "required_columns": [
+      "event_id",
+      "event_date",
+      "latitude",
+      "longitude",
+      "state",
+      "rainfall_1d",
+      "rainfall_3d",
+      "rainfall_7d",
+      "rainfall_15d",
+      "rainfall_30d",
+      "soil_moisture",
+      "soil_moisture_anomaly",
+      "elevation",
+      "slope",
+      "aspect",
+      "curvature",
+      "landslide",
+      "sample_type"
+    ]
+  },
+  "quality_control_audit": {
+    "qc_status": "PASSED_STRICT_QC",
+    "detected_issues": [],
+    "duplicate_rows_count": 0,
+    "duplicate_event_ids_count": 0,
+    "duplicate_coordinates": {
+      "total_shared_coordinates": 1833,
+      "within_positive_class": 17,
+      "within_negative_class": 1816,
+      "cross_class_coordinate_collisions": 0,
+      "cross_class_isolation_verified": true
+    },
+    "missing_values_audit": {
+      "total_missing_values": 0,
+      "missing_values_by_feature": {
+        "event_id": 0,
+        "event_date": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "state": 0,
+        "rainfall_1d": 0,
+        "rainfall_3d": 0,
+        "rainfall_7d": 0,
+        "rainfall_15d": 0,
+        "rainfall_30d": 0,
+        "soil_moisture": 0,
+        "soil_moisture_anomaly": 0,
+        "elevation": 0,
+        "slope": 0,
+        "aspect": 0,
+        "curvature": 0,
+        "landslide": 0,
+        "sample_type": 0
+      },
+      "all_features_complete": true
+    },
+    "dates_integrity": {
+      "all_dates_valid_iso_format": true,
+      "earliest_date": "1990-01-29",
+      "latest_date": "2021-06-12"
+    },
+    "coordinates_integrity": {
+      "all_coordinates_within_study_domain": true,
+      "latitude_range": [
+        22.479,
+        33.0
+      ],
+      "longitude_range": [
+        75.957,
+        96.926
+      ]
+    },
+    "physical_bounds_integrity": {
+      "all_terrain_within_physical_limits": true
+    }
+  },
+  "outlier_analysis_iqr": {
+    "rainfall_1d": {
+      "q1": 3.3075,
+      "q3": 21.26,
+      "iqr": 17.9525,
+      "lower_fence": -23.6212,
+      "upper_fence": 48.1887,
+      "outlier_count": 203,
+      "outlier_pct": 7.26
+    },
+    "rainfall_3d": {
+      "q1": 14.62,
+      "q3": 65.9,
+      "iqr": 51.28,
+      "lower_fence": -62.3,
+      "upper_fence": 142.82,
+      "outlier_count": 138,
+      "outlier_pct": 4.94
+    },
+    "rainfall_7d": {
+      "q1": 38.29,
+      "q3": 123.21,
+      "iqr": 84.92,
+      "lower_fence": -89.09,
+      "upper_fence": 250.59,
+      "outlier_count": 88,
+      "outlier_pct": 3.15
+    },
+    "rainfall_15d": {
+      "q1": 83.5,
+      "q3": 221.9025,
+      "iqr": 138.4025,
+      "lower_fence": -124.1037,
+      "upper_fence": 429.5063,
+      "outlier_count": 46,
+      "outlier_pct": 1.65
+    },
+    "rainfall_30d": {
+      "q1": 165.255,
+      "q3": 388.85,
+      "iqr": 223.595,
+      "lower_fence": -170.1375,
+      "upper_fence": 724.2425,
+      "outlier_count": 46,
+      "outlier_pct": 1.65
+    },
+    "soil_moisture": {
+      "q1": 0.74,
+      "q3": 0.92,
+      "iqr": 0.18,
+      "lower_fence": 0.47,
+      "upper_fence": 1.19,
+      "outlier_count": 71,
+      "outlier_pct": 2.54
+    },
+    "soil_moisture_anomaly": {
+      "q1": 1.1028,
+      "q3": 2.5333,
+      "iqr": 1.4305,
+      "lower_fence": -1.0429,
+      "upper_fence": 4.679,
+      "outlier_count": 18,
+      "outlier_pct": 0.64
+    },
+    "elevation": {
+      "q1": 307.93,
+      "q3": 2633.0175,
+      "iqr": 2325.0875,
+      "lower_fence": -3179.7013,
+      "upper_fence": 6120.6488,
+      "outlier_count": 0,
+      "outlier_pct": 0.0
+    },
+    "slope": {
+      "q1": 7.49,
+      "q3": 30.81,
+      "iqr": 23.32,
+      "lower_fence": -27.49,
+      "upper_fence": 65.79,
+      "outlier_count": 0,
+      "outlier_pct": 0.0
+    },
+    "aspect": {
+      "q1": 68.13,
+      "q3": 285.19,
+      "iqr": 217.06,
+      "lower_fence": -257.46,
+      "upper_fence": 610.78,
+      "outlier_count": 0,
+      "outlier_pct": 0.0
+    },
+    "curvature": {
+      "q1": -0.0039,
+      "q3": 0.0033,
+      "iqr": 0.0072,
+      "lower_fence": -0.0148,
+      "upper_fence": 0.0141,
+      "outlier_count": 167,
+      "outlier_pct": 5.97
+    }
+  },
+  "feature_summary_statistics": {
+    "rainfall_1d": {
+      "overall": {
+        "mean": 16.3946,
+        "std": 21.4663,
+        "min": 0.0,
+        "median": 9.27,
+        "max": 158.4
+      },
+      "positive_class": {
+        "mean": 19.3052,
+        "median": 10.3
+      },
+      "negative_class": {
+        "mean": 14.9393,
+        "median": 8.695
+      }
+    },
+    "rainfall_3d": {
+      "overall": {
+        "mean": 47.643,
+        "std": 47.4782,
+        "min": 0.0,
+        "median": 33.21,
+        "max": 364.97
+      },
+      "positive_class": {
+        "mean": 53.8821,
+        "median": 37.61
+      },
+      "negative_class": {
+        "mean": 44.5234,
+        "median": 31.615
+      }
+    },
+    "rainfall_7d": {
+      "overall": {
+        "mean": 89.8294,
+        "std": 71.5295,
+        "min": 0.0,
+        "median": 75.035,
+        "max": 533.46
+      },
+      "positive_class": {
+        "mean": 99.4077,
+        "median": 85.55
+      },
+      "negative_class": {
+        "mean": 85.0402,
+        "median": 66.97
+      }
+    },
+    "rainfall_15d": {
+      "overall": {
+        "mean": 162.6297,
+        "std": 105.2793,
+        "min": 0.0,
+        "median": 149.94,
+        "max": 698.26
+      },
+      "positive_class": {
+        "mean": 177.0197,
+        "median": 166.555
+      },
+      "negative_class": {
+        "mean": 155.4348,
+        "median": 140.295
+      }
+    },
+    "rainfall_30d": {
+      "overall": {
+        "mean": 291.5202,
+        "std": 168.4835,
+        "min": 0.0,
+        "median": 286.26,
+        "max": 1038.54
+      },
+      "positive_class": {
+        "mean": 313.1479,
+        "median": 306.455
+      },
+      "negative_class": {
+        "mean": 280.7064,
+        "median": 271.71
+      }
+    },
+    "soil_moisture": {
+      "overall": {
+        "mean": 0.8147,
+        "std": 0.138,
+        "min": 0.17,
+        "median": 0.85,
+        "max": 1.0
+      },
+      "positive_class": {
+        "mean": 0.844,
+        "median": 0.88
+      },
+      "negative_class": {
+        "mean": 0.8,
+        "median": 0.84
+      }
+    },
+    "soil_moisture_anomaly": {
+      "overall": {
+        "mean": 1.7234,
+        "std": 0.98,
+        "min": -2.2,
+        "median": 1.8,
+        "max": 3.4222
+      },
+      "positive_class": {
+        "mean": 1.1699,
+        "median": 1.1894
+      },
+      "negative_class": {
+        "mean": 2.0002,
+        "median": 2.2667
+      }
+    },
+    "elevation": {
+      "overall": {
+        "mean": 1812.9323,
+        "std": 1848.8969,
+        "min": 3.19,
+        "median": 1063.07,
+        "max": 5894.65
+      },
+      "positive_class": {
+        "mean": 1321.6934,
+        "median": 1207.1
+      },
+      "negative_class": {
+        "mean": 2058.5518,
+        "median": 938.27
+      }
+    },
+    "slope": {
+      "overall": {
+        "mean": 19.0331,
+        "std": 13.4384,
+        "min": 0.0,
+        "median": 17.67,
+        "max": 60.4
+      },
+      "positive_class": {
+        "mean": 21.1344,
+        "median": 20.235
+      },
+      "negative_class": {
+        "mean": 17.9825,
+        "median": 17.29
+      }
+    },
+    "aspect": {
+      "overall": {
+        "mean": 178.2015,
+        "std": 116.4604,
+        "min": 0.0,
+        "median": 189.855,
+        "max": 359.57
+      },
+      "positive_class": {
+        "mean": 181.5331,
+        "median": 186.835
+      },
+      "negative_class": {
+        "mean": 176.5357,
+        "median": 195.1
+      }
+    },
+    "curvature": {
+      "overall": {
+        "mean": -0.0,
+        "std": 0.0076,
+        "min": -0.0296,
+        "median": 0.0003,
+        "max": 0.0511
+      },
+      "positive_class": {
+        "mean": -0.0,
+        "median": 0.0001
+      },
+      "negative_class": {
+        "mean": -0.0,
+        "median": 0.0009
+      }
+    }
+  },
+  "state_distribution": {
+    "Arunachal Pradesh": {
+      "positive_count": 74,
+      "negative_count": 148,
+      "total_count": 222,
+      "negative_to_positive_ratio": 2.0,
+      "state_pct_of_dataset": 7.94
+    },
+    "Assam": {
+      "positive_count": 94,
+      "negative_count": 188,
+      "total_count": 282,
+      "negative_to_positive_ratio": 2.0,
+      "state_pct_of_dataset": 10.09
+    },
+    "Himachal Pradesh": {
+      "positive_count": 208,
+      "negative_count": 416,
+      "total_count": 624,
+      "negative_to_positive_ratio": 2.0,
+      "state_pct_of_dataset": 22.32
+    },
+    "Manipur": {
+      "positive_count": 102,
+      "negative_count": 204,
+      "total_count": 306,
+      "negative_to_positive_ratio": 2.0,
+      "state_pct_of_dataset": 10.94
+    },
+    "Meghalaya": {
+      "positive_count": 38,
+      "negative_count": 76,
+      "total_count": 114,
+      "negative_to_positive_ratio": 2.0,
+      "state_pct_of_dataset": 4.08
+    },
+    "Mizoram": {
+      "positive_count": 39,
+      "negative_count": 78,
+      "total_count": 117,
+      "negative_to_positive_ratio": 2.0,
+      "state_pct_of_dataset": 4.18
+    },
+    "Nagaland": {
+      "positive_count": 91,
+      "negative_count": 182,
+      "total_count": 273,
+      "negative_to_positive_ratio": 2.0,
+      "state_pct_of_dataset": 9.76
+    },
+    "Sikkim": {
+      "positive_count": 56,
+      "negative_count": 112,
+      "total_count": 168,
+      "negative_to_positive_ratio": 2.0,
+      "state_pct_of_dataset": 6.01
+    },
+    "Tripura": {
+      "positive_count": 8,
+      "negative_count": 16,
+      "total_count": 24,
+      "negative_to_positive_ratio": 2.0,
+      "state_pct_of_dataset": 0.86
+    },
+    "Uttarakhand": {
+      "positive_count": 222,
+      "negative_count": 444,
+      "total_count": 666,
+      "negative_to_positive_ratio": 2.0,
+      "state_pct_of_dataset": 23.82
+    }
+  },
+  "temporal_distribution": {
+    "monthly_breakdown": {
+      "01_Jan": {
+        "positive_count": 4,
+        "negative_count": 6,
+        "total": 10,
+        "negative_to_positive_ratio": 1.5
+      },
+      "02_Feb": {
+        "positive_count": 10,
+        "negative_count": 21,
+        "total": 31,
+        "negative_to_positive_ratio": 2.1
+      },
+      "03_Mar": {
+        "positive_count": 11,
+        "negative_count": 24,
+        "total": 35,
+        "negative_to_positive_ratio": 2.18
+      },
+      "04_Apr": {
+        "positive_count": 41,
+        "negative_count": 82,
+        "total": 123,
+        "negative_to_positive_ratio": 2.0
+      },
+      "05_May": {
+        "positive_count": 43,
+        "negative_count": 85,
+        "total": 128,
+        "negative_to_positive_ratio": 1.98
+      },
+      "06_Jun": {
+        "positive_count": 141,
+        "negative_count": 288,
+        "total": 429,
+        "negative_to_positive_ratio": 2.04
+      },
+      "07_Jul": {
+        "positive_count": 250,
+        "negative_count": 507,
+        "total": 757,
+        "negative_to_positive_ratio": 2.03
+      },
+      "08_Aug": {
+        "positive_count": 220,
+        "negative_count": 422,
+        "total": 642,
+        "negative_to_positive_ratio": 1.92
+      },
+      "09_Sep": {
+        "positive_count": 153,
+        "negative_count": 305,
+        "total": 458,
+        "negative_to_positive_ratio": 1.99
+      },
+      "10_Oct": {
+        "positive_count": 45,
+        "negative_count": 98,
+        "total": 143,
+        "negative_to_positive_ratio": 2.18
+      },
+      "11_Nov": {
+        "positive_count": 4,
+        "negative_count": 5,
+        "total": 9,
+        "negative_to_positive_ratio": 1.25
+      },
+      "12_Dec": {
+        "positive_count": 10,
+        "negative_count": 21,
+        "total": 31,
+        "negative_to_positive_ratio": 2.1
+      }
+    },
+    "yearly_breakdown": {
+      "1990": {
+        "positive_count": 1,
+        "negative_count": 1,
+        "total": 2
+      },
+      "2007": {
+        "positive_count": 35,
+        "negative_count": 80,
+        "total": 115
+      },
+      "2008": {
+        "positive_count": 24,
+        "negative_count": 57,
+        "total": 81
+      },
+      "2009": {
+        "positive_count": 20,
+        "negative_count": 40,
+        "total": 60
+      },
+      "2010": {
+        "positive_count": 168,
+        "negative_count": 331,
+        "total": 499
+      },
+      "2011": {
+        "positive_count": 85,
+        "negative_count": 169,
+        "total": 254
+      },
+      "2012": {
+        "positive_count": 43,
+        "negative_count": 81,
+        "total": 124
+      },
+      "2013": {
+        "positive_count": 136,
+        "negative_count": 274,
+        "total": 410
+      },
+      "2014": {
+        "positive_count": 39,
+        "negative_count": 77,
+        "total": 116
+      },
+      "2015": {
+        "positive_count": 111,
+        "negative_count": 220,
+        "total": 331
+      },
+      "2016": {
+        "positive_count": 71,
+        "negative_count": 129,
+        "total": 200
+      },
+      "2017": {
+        "positive_count": 132,
+        "negative_count": 272,
+        "total": 404
+      },
+      "2018": {
+        "positive_count": 63,
+        "negative_count": 125,
+        "total": 188
+      },
+      "2019": {
+        "positive_count": 3,
+        "negative_count": 5,
+        "total": 8
+      },
+      "2021": {
+        "positive_count": 1,
+        "negative_count": 3,
+        "total": 4
+      }
+    }
+  },
+  "file_artifacts": {
+    "output_training_csv": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\apda_mitra_training_dataset.csv",
+    "output_report_json": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\training_dataset_report.json",
+    "positive_source_csv": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\positive_landslide_dataset.csv",
+    "negative_source_csv": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\negative_landslide_dataset.csv"
+  }
+}

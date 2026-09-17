@@ -1,0 +1,12 @@
+[
+  "rain_1h",
+  "rain_6h",
+  "rain_24h",
+  "rain_3d",
+  "rain_7d",
+  "soil_moisture",
+  "soil_moisture_anomaly",
+  "elevation",
+  "slope",
+  "aspect"
+]

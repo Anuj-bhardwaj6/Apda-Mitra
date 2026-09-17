@@ -1,0 +1,117 @@
+{
+  "model_name": "Apda Mitra Landslide Risk XGBoost Classifier",
+  "evaluation_dataset": "Test Set (2018-04-27 to 2021-06-12)",
+  "dataset_sizes": {
+    "train_samples": 1992,
+    "validation_samples": 604,
+    "test_samples": 200,
+    "positive_test_events": 67,
+    "negative_test_samples": 133
+  },
+  "feature_list": [
+    "rainfall_1d",
+    "rainfall_3d",
+    "rainfall_7d",
+    "rainfall_15d",
+    "rainfall_30d",
+    "soil_moisture",
+    "soil_moisture_anomaly",
+    "elevation",
+    "slope",
+    "aspect",
+    "curvature"
+  ],
+  "hyperparameters_applied": {
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "n_estimators": 302,
+    "min_child_weight": 3,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "scale_pos_weight": 2.009,
+    "reg_lambda": 2.0,
+    "eval_metric": "aucpr",
+    "early_stopping_rounds": 30
+  },
+  "primary_evaluation_metrics": {
+    "roc_auc": 0.9878,
+    "pr_auc": 0.9858,
+    "brier_score_loss": 0.024
+  },
+  "decision_threshold_0_50": {
+    "threshold": 0.5,
+    "precision": 0.9844,
+    "recall": 0.9403,
+    "f1_score": 0.9618,
+    "false_negative_rate": 0.0597,
+    "confusion_matrix": {
+      "true_negatives": 132,
+      "false_positives": 1,
+      "false_negatives": 4,
+      "true_positives": 63
+    }
+  },
+  "disaster_early_warning_tuned_threshold": {
+    "threshold": 0.29,
+    "tuning_criterion": "Validation F1-score optimization",
+    "precision": 0.9692,
+    "recall": 0.9403,
+    "f1_score": 0.9545,
+    "false_negative_rate": 0.0597,
+    "confusion_matrix": {
+      "true_negatives": 131,
+      "false_positives": 2,
+      "false_negatives": 4,
+      "true_positives": 63
+    }
+  },
+  "feature_importance_rankings": {
+    "xgboost_gain_importance": {
+      "soil_moisture": 0.288,
+      "soil_moisture_anomaly": 0.2561,
+      "elevation": 0.1298,
+      "rainfall_1d": 0.0577,
+      "slope": 0.0533,
+      "curvature": 0.0488,
+      "aspect": 0.0471,
+      "rainfall_30d": 0.0379,
+      "rainfall_3d": 0.037,
+      "rainfall_15d": 0.0223,
+      "rainfall_7d": 0.022
+    },
+    "shap_mean_absolute_importance": {
+      "soil_moisture_anomaly": 2.3921,
+      "elevation": 1.753,
+      "soil_moisture": 1.5582,
+      "slope": 0.4988,
+      "aspect": 0.4959,
+      "curvature": 0.3609,
+      "rainfall_1d": 0.2657,
+      "rainfall_3d": 0.2499,
+      "rainfall_30d": 0.2138,
+      "rainfall_7d": 0.1324,
+      "rainfall_15d": 0.06
+    }
+  },
+  "scientific_assessment_and_limitations": {
+    "production_readiness": "EXPERIMENTAL_BASELINE_ONLY (Do NOT claim production readiness from single experiment)",
+    "key_limitations": [
+      "Temporal evaluation window spans 2018-2021 with 200 samples; further cross-season temporal folds are required.",
+      "Background non-landslide samples rely on pseudo-absence assumptions; local micro-failures in unpopulated zones may be unrecorded.",
+      "Point-scale precipitation and catchment soil moisture from NASA GMAO/POWER carry coarse spatial resolution (~50 km) relative to slope-scale Copernicus 30m DEM.",
+      "Geological lithology and road/infrastructure proximity layers are not yet integrated into this baseline."
+    ],
+    "utility_for_further_experimentation": true,
+    "recommendation": "Model demonstrates high discriminative capability on historical test window and provides a solid experimental benchmark for operational alerting pipeline iterations."
+  },
+  "generated_artifacts": {
+    "model_json": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\models\\apda_mitra_xgboost.json",
+    "model_metadata_json": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\models\\model_metadata.json",
+    "test_metrics_json": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\evaluation\\test_metrics.json",
+    "confusion_matrix_png": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\evaluation\\confusion_matrix.png",
+    "roc_curve_png": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\evaluation\\roc_curve.png",
+    "pr_curve_png": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\evaluation\\pr_curve.png",
+    "feature_importance_png": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\evaluation\\feature_importance.png"
+  },
+  "evaluation_timestamp_utc": "2026-09-14T06:51:45.333314+00:00"
+}

@@ -1,0 +1,93 @@
+{
+  "type": "FeatureCollection",
+  "name": "Apda-Mitra Landslide Hazard Zones",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ls-01",
+        "name": "Vellarmala Ridge High-Vulnerability Escarpment",
+        "nameHi": "वेल्लारमला रिज उच्च-संवेदनशील कगार",
+        "category": "Landslide Risk",
+        "risk_level": "critical",
+        "slope_deg": 44,
+        "area_sqkm": 2.4,
+        "status": "Critical Slope Instability",
+        "description": "Steep slope exceeding 40° slope gradient with deeply weathered regolith. Debris flow runout path identified.",
+        "source": "Geological Survey of India (GSI)",
+        "updated_at": "GSI Monsoon Landslide Protocol"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [76.1020, 11.6950],
+            [76.1150, 11.7010],
+            [76.1210, 11.7120],
+            [76.1100, 11.7160],
+            [76.0980, 11.7070],
+            [76.1020, 11.6950]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ls-02",
+        "name": "Attamala Hillside Tension Crack Zone",
+        "nameHi": "अट्टामला पहाड़ी दरार क्षेत्र",
+        "category": "Landslide Risk",
+        "risk_level": "high",
+        "slope_deg": 33,
+        "area_sqkm": 1.15,
+        "status": "Active Creep Monitored",
+        "description": "Translational slip zone with observed ground subsidence and surface tension fractures.",
+        "source": "Kerala State Disaster Management Authority",
+        "updated_at": "GSI Field Monitoring"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [76.1400, 11.6700],
+            [76.1520, 11.6730],
+            [76.1560, 11.6810],
+            [76.1450, 11.6830],
+            [76.1380, 11.6760],
+            [76.1400, 11.6700]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ls-03",
+        "name": "Mundakkai Terrace Moderate Risk Zone",
+        "nameHi": "मुंडक्कई छत मध्यम जोखिम क्षेत्र",
+        "category": "Landslide Risk",
+        "risk_level": "moderate",
+        "slope_deg": 24,
+        "area_sqkm": 0.9,
+        "status": "Advisory Vigilance",
+        "description": "Terraced plantation slopes with saturated soil horizons; heavy drainage mitigation active.",
+        "source": "District Disaster Management Authority",
+        "updated_at": "DEOC Monitoring"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [76.1250, 11.6550],
+            [76.1360, 11.6570],
+            [76.1390, 11.6660],
+            [76.1280, 11.6670],
+            [76.1250, 11.6550]
+          ]
+        ]
+      }
+    }
+  ]
+}

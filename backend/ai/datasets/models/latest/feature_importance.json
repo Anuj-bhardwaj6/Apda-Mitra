@@ -1,0 +1,15 @@
+{
+  "copernicus_slope_deg": 0.4367,
+  "gpm_imerg_rainfall_3d_mm": 0.3122,
+  "gpm_imerg_rainfall_1d_mm": 0.243,
+  "gpm_imerg_rainfall_7d_mm": 0.0042,
+  "smap_surface_moisture_m3m3": 0.004,
+  "copernicus_profile_curvature": 0.0,
+  "copernicus_plan_curvature": 0.0,
+  "copernicus_aspect_deg": 0.0,
+  "copernicus_elevation_m": 0.0,
+  "copernicus_twi": 0.0,
+  "gpm_imerg_peak_intensity_mm_h": 0.0,
+  "smap_rootzone_moisture_m3m3": 0.0,
+  "smap_soil_saturation_ratio": 0.0
+}

@@ -1,0 +1,37 @@
+{
+  "_disclaimer": "EXPERIMENTAL MAPPING ONLY. These risk thresholds are calibrated empirically on historical landslide events in the Himalayan and Northeast India inventory. They DO NOT constitute official government, disaster management, or statutory emergency alert thresholds (such as those issued by NDMA, GSI, or IMD). They are intended solely for research, validation, and computational decision-support.",
+  "status": "experimental",
+  "version": "1.0.0",
+  "default_decision_threshold": 0.50,
+  "calibration_basis": "Empirical validation on 10-state Himalayan & Northeast temporal test split (2018-2021). Threshold intervals were selected to balance high hazard sensitivity (recall >= 80%) with manageable false discovery rates.",
+  "thresholds": {
+    "low": {
+      "level": "Low",
+      "min_probability": 0.0,
+      "max_probability": 0.30,
+      "description": "Baseline or low susceptibility under observed environmental conditions. Minimal immediate slope failure hazard.",
+      "recommended_action": "Standard observation; routine monitoring."
+    },
+    "moderate": {
+      "level": "Moderate",
+      "min_probability": 0.30,
+      "max_probability": 0.55,
+      "description": "Elevated susceptibility. Wetting conditions or terrain slope indicate heightened hazard if additional precipitation occurs.",
+      "recommended_action": "Heightened situational awareness and monitoring of localized rain telemetry."
+    },
+    "high": {
+      "level": "High",
+      "min_probability": 0.55,
+      "max_probability": 0.75,
+      "description": "Substantial landslide hazard potential driven by acute cumulative rainfall, elevated pore pressure, and/or steep terrain.",
+      "recommended_action": "Issue advisory warnings to local field teams and review vulnerable slope corridors."
+    },
+    "critical": {
+      "level": "Critical",
+      "min_probability": 0.75,
+      "max_probability": 1.0,
+      "description": "Severe hazard conditions with strong statistical congruence to documented catastrophic landslide events.",
+      "recommended_action": "Immediate local verification, alert mobilization, and potential precautionary evacuations."
+    }
+  }
+}

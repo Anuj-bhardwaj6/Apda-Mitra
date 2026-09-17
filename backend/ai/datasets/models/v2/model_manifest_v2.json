@@ -1,0 +1,26 @@
+{
+  "name": "Apda Mitra AI Landslide Multi-Sensor Engine v2",
+  "version": "v2.0.0-apdamitra-sentinel-lhasa",
+  "created_at": "2026-09-12T00:55:12.048924",
+  "sha256": "5b6201640eb5291a0d6ee866528705f035fc646dab62b395b138127546f361ff",
+  "features_count": 23,
+  "sensor_pillars": {
+    "1_events": "NASA COOLR Landslide Repository",
+    "2_rainfall": "NASA GPM IMERG Precipitation",
+    "3_moisture": "NASA/USDA SMAP Volumetric Soil Moisture",
+    "4_topography": "Copernicus GLO-30 30m DEM",
+    "5_sar": "Sentinel-1 C-Band SAR (VV/VH Backscatter & InSAR Coherence)",
+    "6_optical": "Sentinel-2 MSI (NDVI Vegetation & Water Indices)",
+    "7_nowcast": "NASA Global Landslide Nowcast v2.0 (LHASA v2.0)"
+  },
+  "metrics": {
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "accuracy": 1.0,
+    "f1": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "brier_score": 0.0,
+    "log_loss": 0.0018
+  }
+}

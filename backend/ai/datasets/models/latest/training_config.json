@@ -1,0 +1,19 @@
+{
+  "model_type": "XGBoostClassifier",
+  "version": "v1.0.0-apdamitra-4pillars",
+  "four_pillars": {
+    "events": "NASA COOLR (Cooperative Open Online Landslide Repository)",
+    "precipitation": "NASA GPM IMERG (Integrated Multi-satellitE Retrievals for GPM)",
+    "soil_moisture": "NASA/USDA SMAP (Soil Moisture Active Passive)",
+    "elevation_and_slope": "Copernicus GLO-30 (Global 30m Digital Elevation Model)"
+  },
+  "n_features": 13,
+  "parameters": {
+    "n_estimators": 300,
+    "max_depth": 5,
+    "learning_rate": 0.03,
+    "subsample": 0.85,
+    "colsample_bytree": 0.85,
+    "eval_metric": "aucpr"
+  }
+}

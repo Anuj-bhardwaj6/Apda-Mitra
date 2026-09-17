@@ -1,0 +1,52 @@
+{
+  "dataset_name": "Apda Mitra Dataset v2",
+  "version": "2.0.0",
+  "created_at": "2026-09-11T19:24:35.505815+00:00",
+  "sha256": "e7571637615e85a044b050e85d23221cf01f88c44bd2c231d299be489499dfe6",
+  "total_records": 1800,
+  "target_column": "landslide",
+  "class_distribution": {
+    "positive_1": 900,
+    "negative_0": 900,
+    "ratio": 0.5
+  },
+  "feature_groups": {
+    "1_ground_truth_events": "NASA COOLR (Landslide Repository)",
+    "2_rainfall": "NASA GPM IMERG (Integrated Multi-satellitE Retrievals)",
+    "3_soil_moisture": "NASA/USDA SMAP (Soil Moisture Active Passive)",
+    "4_elevation_and_slope": "Copernicus GLO-30 (30m DEM)",
+    "5_sar_backscatter_coherence": "Sentinel-1 C-Band SAR (VV, VH, InSAR Coherence)",
+    "6_multispectral_vegetation": "Sentinel-2 MSI (NDVI, NDWI, Bare Soil Index)",
+    "7_global_hazard_nowcast": "NASA Global Landslide Nowcast v2.0 (LHASA v2.0)"
+  },
+  "feature_columns_v2": [
+    "copernicus_elevation_m",
+    "copernicus_slope_deg",
+    "copernicus_aspect_deg",
+    "copernicus_plan_curvature",
+    "copernicus_profile_curvature",
+    "copernicus_twi",
+    "gpm_imerg_rainfall_1d_mm",
+    "gpm_imerg_rainfall_3d_mm",
+    "gpm_imerg_rainfall_7d_mm",
+    "gpm_imerg_peak_intensity_mm_h",
+    "smap_surface_moisture_m3m3",
+    "smap_rootzone_moisture_m3m3",
+    "smap_soil_saturation_ratio",
+    "sentinel1_sar_vv_db",
+    "sentinel1_sar_vh_db",
+    "sentinel1_polarimetric_ratio_vh_vv",
+    "sentinel1_interferometric_coherence",
+    "sentinel2_ndvi",
+    "sentinel2_ndwi",
+    "sentinel2_bsi",
+    "nasa_lhasa_nowcast_score",
+    "nasa_lhasa_antecedent_rainfall_index",
+    "nasa_lhasa_susceptibility_category"
+  ],
+  "splits": {
+    "train": 1260,
+    "val": 270,
+    "test": 270
+  }
+}

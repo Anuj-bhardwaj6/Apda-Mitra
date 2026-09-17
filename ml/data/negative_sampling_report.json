@@ -1,0 +1,257 @@
+{
+  "dataset_name": "Apda Mitra Non-Landslide Background / Pseudo-Absence Dataset",
+  "scientific_framework": {
+    "paradigm": "Presence-Background / Pseudo-Absence Framework (NASA LHASA / USGS standard)",
+    "fundamental_assumption": "Sampled points represent non-event background environmental conditions and are not claimed to be proven absolute non-occurrences over historical geological time. This controls for geographic, regional, and seasonal exposure bias without fabricating arbitrary non-landslide truths.",
+    "sampling_strategy": "State-stratified negative sampling anchored at spatially buffered locations (>= 0.10 deg from known landslides), paired 50% contemporaneously with positive event dates and 50% across the historical seasonal distribution.",
+    "random_seed": 42,
+    "reproducible": true
+  },
+  "spatial_and_temporal_parameters": {
+    "study_region": "10 Indian Himalayan and Northeast States",
+    "minimum_spatial_buffer_deg": 0.1,
+    "minimum_spatial_buffer_km": 11.1,
+    "minimum_observed_buffer_deg": 0.114,
+    "observation_period": "1990 to 2021",
+    "total_positive_events": 932,
+    "total_negative_samples": 1864,
+    "sample_ratio_neg_to_pos": 2.0
+  },
+  "validation_audit": {
+    "status": "PASSED_STRICT_VALIDATION",
+    "duplicate_event_ids": 0,
+    "spatial_buffer_violations": 0,
+    "missing_values_total": 0,
+    "missing_values_by_column": {
+      "event_id": 0,
+      "event_date": 0,
+      "latitude": 0,
+      "longitude": 0,
+      "state": 0,
+      "source_catalog": 0,
+      "source_dataset": 0,
+      "sample_type": 0,
+      "rainfall_1d": 0,
+      "rainfall_3d": 0,
+      "rainfall_7d": 0,
+      "rainfall_15d": 0,
+      "rainfall_30d": 0,
+      "soil_moisture": 0,
+      "soil_moisture_anomaly": 0,
+      "elevation": 0,
+      "slope": 0,
+      "aspect": 0,
+      "curvature": 0,
+      "landslide": 0
+    },
+    "complete_rows": 1864,
+    "complete_rows_pct": 100.0,
+    "arbitrary_or_synthetic_fills_applied": false
+  },
+  "state_stratification_comparison": {
+    "Uttarakhand": {
+      "positive_count": 222,
+      "negative_count": 444,
+      "negative_to_positive_ratio": 2.0
+    },
+    "Himachal Pradesh": {
+      "positive_count": 208,
+      "negative_count": 416,
+      "negative_to_positive_ratio": 2.0
+    },
+    "Manipur": {
+      "positive_count": 102,
+      "negative_count": 204,
+      "negative_to_positive_ratio": 2.0
+    },
+    "Assam": {
+      "positive_count": 94,
+      "negative_count": 188,
+      "negative_to_positive_ratio": 2.0
+    },
+    "Nagaland": {
+      "positive_count": 91,
+      "negative_count": 182,
+      "negative_to_positive_ratio": 2.0
+    },
+    "Arunachal Pradesh": {
+      "positive_count": 74,
+      "negative_count": 148,
+      "negative_to_positive_ratio": 2.0
+    },
+    "Sikkim": {
+      "positive_count": 56,
+      "negative_count": 112,
+      "negative_to_positive_ratio": 2.0
+    },
+    "Mizoram": {
+      "positive_count": 39,
+      "negative_count": 78,
+      "negative_to_positive_ratio": 2.0
+    },
+    "Meghalaya": {
+      "positive_count": 38,
+      "negative_count": 76,
+      "negative_to_positive_ratio": 2.0
+    },
+    "Tripura": {
+      "positive_count": 8,
+      "negative_count": 16,
+      "negative_to_positive_ratio": 2.0
+    }
+  },
+  "monthly_seasonal_distribution_comparison": {
+    "1": {
+      "positive_count": 4,
+      "negative_count": 6,
+      "negative_to_positive_ratio": 1.5
+    },
+    "2": {
+      "positive_count": 10,
+      "negative_count": 21,
+      "negative_to_positive_ratio": 2.1
+    },
+    "3": {
+      "positive_count": 11,
+      "negative_count": 24,
+      "negative_to_positive_ratio": 2.18
+    },
+    "4": {
+      "positive_count": 41,
+      "negative_count": 82,
+      "negative_to_positive_ratio": 2.0
+    },
+    "5": {
+      "positive_count": 43,
+      "negative_count": 85,
+      "negative_to_positive_ratio": 1.98
+    },
+    "6": {
+      "positive_count": 141,
+      "negative_count": 288,
+      "negative_to_positive_ratio": 2.04
+    },
+    "7": {
+      "positive_count": 250,
+      "negative_count": 507,
+      "negative_to_positive_ratio": 2.03
+    },
+    "8": {
+      "positive_count": 220,
+      "negative_count": 422,
+      "negative_to_positive_ratio": 1.92
+    },
+    "9": {
+      "positive_count": 153,
+      "negative_count": 305,
+      "negative_to_positive_ratio": 1.99
+    },
+    "10": {
+      "positive_count": 45,
+      "negative_count": 98,
+      "negative_to_positive_ratio": 2.18
+    },
+    "11": {
+      "positive_count": 4,
+      "negative_count": 5,
+      "negative_to_positive_ratio": 1.25
+    },
+    "12": {
+      "positive_count": 10,
+      "negative_count": 21,
+      "negative_to_positive_ratio": 2.1
+    }
+  },
+  "feature_summary_statistics": {
+    "rainfall_1d": {
+      "mean": 14.9393,
+      "std": 19.0964,
+      "min": 0.0,
+      "median": 8.695,
+      "max": 153.7
+    },
+    "rainfall_3d": {
+      "mean": 44.5234,
+      "std": 44.3093,
+      "min": 0.0,
+      "median": 31.615,
+      "max": 345.23
+    },
+    "rainfall_7d": {
+      "mean": 85.0402,
+      "std": 68.5947,
+      "min": 0.0,
+      "median": 66.97,
+      "max": 468.07
+    },
+    "rainfall_15d": {
+      "mean": 155.4348,
+      "std": 103.189,
+      "min": 0.0,
+      "median": 140.295,
+      "max": 569.55
+    },
+    "rainfall_30d": {
+      "mean": 280.7064,
+      "std": 168.6827,
+      "min": 0.0,
+      "median": 271.71,
+      "max": 1038.54
+    },
+    "soil_moisture": {
+      "mean": 0.8,
+      "std": 0.1436,
+      "min": 0.17,
+      "median": 0.84,
+      "max": 0.99
+    },
+    "soil_moisture_anomaly": {
+      "mean": 2.0002,
+      "std": 0.9573,
+      "min": -2.2,
+      "median": 2.2667,
+      "max": 3.2667
+    },
+    "elevation": {
+      "mean": 2058.5518,
+      "std": 2116.1676,
+      "min": 3.19,
+      "median": 938.27,
+      "max": 5403.64
+    },
+    "slope": {
+      "mean": 17.9825,
+      "std": 13.479,
+      "min": 0.0,
+      "median": 17.29,
+      "max": 56.52
+    },
+    "aspect": {
+      "mean": 176.5357,
+      "std": 120.9763,
+      "min": 0.0,
+      "median": 195.1,
+      "max": 358.76
+    },
+    "curvature": {
+      "mean": -0.0,
+      "std": 0.0078,
+      "min": -0.0154,
+      "median": 0.0009,
+      "max": 0.021
+    }
+  },
+  "data_sources": {
+    "rainfall": "NASA POWER Native Daily Precipitation (PRECTOTCORR)",
+    "soil_moisture": "NASA GMAO MERRA-2 Catchment Land Surface Model (GWETTOP)",
+    "terrain": "Copernicus DEM GLO-30 (European Space Agency / Airbus)"
+  },
+  "output_artifacts": {
+    "negative_dataset_csv": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\negative_landslide_dataset.csv",
+    "negative_sampling_report_json": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\negative_sampling_report.json"
+  },
+  "execution_telemetry": {
+    "elapsed_seconds": 184.86,
+    "generated_timestamp_utc": "2026-09-14T06:39:13.069725+00:00"
+  }
+}

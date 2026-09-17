@@ -1,0 +1,33 @@
+{
+  "model_name": "Apda Mitra XGBoost Regional Landslide Predictor (Region V1)",
+  "algorithm": "XGBoost (Extreme Gradient Boosting)",
+  "version": "1.0.0",
+  "created_at": "2026-09-12T16:23:29.167238+00:00",
+  "geographic_scope": "10 Himalayan & Northeast States",
+  "temporal_evaluation": {
+    "train_period": "2000-2021",
+    "validation_period": "2022-2023",
+    "test_period": "2024-2025"
+  },
+  "metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "brier_score": 0.0001,
+    "confusion_matrix": {
+      "true_negative": 75,
+      "false_positive": 0,
+      "false_negative": 0,
+      "true_positive": 12
+    }
+  },
+  "risk_thresholds": {
+    "low": 0.3,
+    "moderate": 0.55,
+    "high": 0.75,
+    "critical": 0.88
+  }
+}

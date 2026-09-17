@@ -1,0 +1,36 @@
+{
+  "dataset_name": "Apda Mitra Roadmap Dataset",
+  "version": "1.1.0",
+  "created_at": "2026-09-12T01:01:52.728887",
+  "sha256": "ea39147789b4aa463f208ebe15f2b803749f73aa2c33aec9ae92a162ab4128a6",
+  "total_records": 2000,
+  "target_column": "landslide",
+  "class_distribution": {
+    "positive_1": 1000,
+    "negative_0": 1000,
+    "balance_ratio": 0.5
+  },
+  "feature_columns": [
+    "rain_1h",
+    "rain_6h",
+    "rain_24h",
+    "rain_3d",
+    "rain_7d",
+    "soil_moisture",
+    "soil_moisture_anomaly",
+    "elevation",
+    "slope",
+    "aspect"
+  ],
+  "splits": {
+    "train": 1400,
+    "val": 300,
+    "test": 300
+  },
+  "four_pillars": {
+    "events": "NASA COOLR (Landslide Ground Truth)",
+    "precipitation": "NASA GPM IMERG (1h, 6h, 24h, 3d, 7d Rainfall)",
+    "soil_moisture": "NASA/USDA SMAP (Volumetric Moisture & Anomaly)",
+    "elevation_and_slope": "Copernicus GLO-30 (Elevation, Slope, Aspect)"
+  }
+}

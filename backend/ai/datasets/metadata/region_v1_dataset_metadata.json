@@ -1,0 +1,28 @@
+{
+  "dataset_name": "Apda Mitra Region V1 Landslide Training Dataset",
+  "created_at": "2026-09-12T16:23:07.674001+00:00",
+  "geographic_scope": "10 States (HP, UK, Sikkim, Arunachal, Assam, Meghalaya, Nagaland, Manipur, Mizoram, Tripura)",
+  "features": [
+    "rain_1d",
+    "rain_3d",
+    "rain_7d",
+    "rain_30d",
+    "soil_moisture",
+    "soil_moisture_anomaly",
+    "elevation",
+    "slope",
+    "aspect",
+    "curvature"
+  ],
+  "target": "landslide",
+  "total_samples": 388,
+  "positive_count": 73,
+  "negative_count": 315,
+  "temporal_splits": {
+    "train": 179,
+    "validation": 122,
+    "test": 87
+  },
+  "csv_path": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\backend\\ai\\datasets\\processed\\apda_mitra_region_v1_training.csv",
+  "parquet_path": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\backend\\ai\\datasets\\processed\\apda_mitra_region_v1_training.parquet"
+}

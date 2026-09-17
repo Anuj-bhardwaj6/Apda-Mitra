@@ -1,0 +1,74 @@
+event_id,date,year,state,district,location,latitude,longitude,landslide_type,trigger,source,temporal_split
+COOLR-HP-001,2023-08-14,2023,Himachal Pradesh,Shimla,Summer Hill Shiv Temple,31.1092,77.1354,debris_flow,monsoon_downpour,NASA_COOLR_GSI,validation
+COOLR-HP-002,2023-08-14,2023,Himachal Pradesh,Shimla,Fagli slope collapse,31.0965,77.1652,mudslide,continuous_rain,NASA_COOLR_SDMA,validation
+COOLR-HP-003,2023-08-15,2023,Himachal Pradesh,Shimla,Krishna Nagar slaughterhouse hill,31.1215,77.1524,rotational_slide,monsoon_rain,GSI_HP,validation
+COOLR-HP-004,2023-07-10,2023,Himachal Pradesh,Mandi,Pandoh Dam NH-21 bypass,31.6704,77.0502,rockslide_debris,torrential_rain,NASA_COOLR_GSI,validation
+COOLR-HP-005,2023-07-09,2023,Himachal Pradesh,Mandi,Victoria Bridge bypass Beas cut,31.7082,76.9321,debris_flow,flooding_rain,NASA_COOLR_SDMA,validation
+COOLR-HP-006,2023-08-24,2023,Himachal Pradesh,Kullu,Anni multi-building scarp collapse,31.4251,77.4285,rotational_slide,monsoon_deluge,GSI_HP,validation
+COOLR-HP-007,2023-08-13,2023,Himachal Pradesh,Solan,Jadon village cloudburst slope wash,30.9854,77.0982,debris_flow,cloudburst,NASA_COOLR_GSI,validation
+COOLR-HP-008,2023-07-09,2023,Himachal Pradesh,Kullu,Bahang Manali-Leh road,32.2685,77.1894,flash_flood_debris,torrential_rain,NASA_COOLR_SDMA,validation
+COOLR-HP-009,2021-08-11,2021,Himachal Pradesh,Kinnaur,Nigulsari NH-5 massive rock avalanche,31.5452,77.9221,rockfall,continuous_rain,NASA_COOLR_GSI,train
+COOLR-HP-010,2021-07-25,2021,Himachal Pradesh,Kinnaur,Batseri Sangla valley boulder fall,31.4331,78.2754,rockfall,intermittent_rain,GSI_HP,train
+COOLR-HP-011,2021-07-12,2021,Himachal Pradesh,Kangra,Bhagsunag Dharamshala flash torrent,32.2472,76.3531,debris_flow,cloudburst,NASA_COOLR_GSI,train
+COOLR-HP-012,2022-08-20,2022,Himachal Pradesh,Chamba,Bharmour-Holi road breach,32.4412,76.5415,debris_slide,monsoon_rain,NASA_COOLR_SDMA,validation
+COOLR-HP-013,2021-07-30,2021,Himachal Pradesh,Sirmaur,Paonta-Shillai hill scarp collapse,30.6521,77.6254,translational_slide,monsoon_rain,GSI_HP,train
+COOLR-HP-014,2024-07-31,2024,Himachal Pradesh,Kullu,Malana II dam cloudburst breach,32.0581,77.2915,debris_flow,cloudburst,NASA_COOLR_2024,test
+COOLR-HP-015,2024-08-01,2024,Himachal Pradesh,Mandi,Thaltukhod Chauhar valley slide,31.9854,76.9821,debris_flow,cloudburst,NASA_COOLR_2024,test
+COOLR-HP-016,2017-08-13,2017,Himachal Pradesh,Mandi,Kotropi Mandi-Pathankot NH collapse,31.8542,76.9214,massive_debris_flow,continuous_rain,NASA_COOLR_GSI,train
+COOLR-UK-001,2013-06-16,2013,Uttarakhand,Rudraprayag,Kedarnath Mandakini deluge,30.7342,79.0665,moraine_dam_debris_flow,cloudburst_rain,NASA_COOLR_GSI,train
+COOLR-UK-002,2013-06-16,2013,Uttarakhand,Rudraprayag,Gaurikund river bank wash,30.6551,79.0284,debris_flow,monsoon_rain,NASA_COOLR_GSI,train
+COOLR-UK-003,2021-02-07,2021,Uttarakhand,Chamoli,Ronti peak / Rishiganga rock-ice avalanche,30.3854,79.7281,rock_ice_avalanche,rock_wedge_failure,NASA_COOLR_GSI,train
+COOLR-UK-004,2023-01-05,2023,Uttarakhand,Chamoli,Joshimath slope subsidence,30.5582,79.5651,slow_subsidence_slump,toe_erosion_drainage,GSI_UK,validation
+COOLR-UK-005,2023-08-04,2023,Uttarakhand,Rudraprayag,Gaurikund roadside shop avalanche,30.6512,79.0281,debris_flow,torrential_rain,NASA_COOLR_SDMA,validation
+COOLR-UK-006,2022-08-20,2022,Uttarakhand,Dehradun,Maldevta Song river cloudburst debris,30.3452,78.1325,debris_torrent,cloudburst,NASA_COOLR_GSI,validation
+COOLR-UK-007,2021-10-19,2021,Uttarakhand,Nainital,Naini lake catchment hill slides,29.3921,79.4542,rotational_slide,continuous_rain,NASA_COOLR_GSI,train
+COOLR-UK-008,2020-07-20,2020,Uttarakhand,Pithoragarh,Dharchula Kali river slope failure,29.8514,80.5352,debris_slide,monsoon_rain,NASA_COOLR_SDMA,train
+COOLR-UK-009,2019-08-15,2019,Uttarakhand,Tehri Garhwal,Totaghati NH-58 chronic rockfall,30.1254,78.5421,rockfall,monsoon_rain,GSI_UK,train
+COOLR-UK-010,2021-07-19,2021,Uttarakhand,Uttarkashi,Mando village cloudburst debris,30.7291,78.4354,debris_flow,cloudburst,NASA_COOLR_GSI,train
+COOLR-UK-011,2023-07-16,2023,Uttarakhand,Pauri Garhwal,Sirobagarh landslide zone NH-58,30.2281,78.8924,translational_slide,monsoon_rain,GSI_UK,validation
+COOLR-UK-012,2024-07-20,2024,Uttarakhand,Rudraprayag,Bhimbali Kedar route slip,30.6851,79.0452,debris_slide,torrential_rain,NASA_COOLR_2024,test
+COOLR-UK-013,2024-08-01,2024,Uttarakhand,Tehri Garhwal,Budha Kedar cloudburst wash,30.5412,78.7125,debris_flow,cloudburst,NASA_COOLR_2024,test
+COOLR-UK-014,2010-09-18,2010,Uttarakhand,Almora,Kapkot-Almora regional deluge,29.7541,79.7854,mudslide,continuous_rain,NASA_COOLR_GSI,train
+COOLR-SK-001,2023-10-04,2023,Sikkim,North Sikkim,Chungthang / South Lhonak GLOF debris,27.6921,88.5842,complex_glof_debris,glof_rain,NASA_COOLR_GSI,validation
+COOLR-SK-002,2022-07-10,2022,Sikkim,East Sikkim,Gangtok NH-10 Ranipool corridor,27.3315,88.6142,rockfall,monsoon_rain,NASA_COOLR_SDMA,validation
+COOLR-SK-003,2021-09-02,2021,Sikkim,South Sikkim,Namchi hill road scarp failure,27.1854,88.3581,rotational_slide,monsoon_rain,GSI_SK,train
+COOLR-SK-004,2020-08-19,2020,Sikkim,West Sikkim,Geyzing Pelling highway cut,27.2882,88.2454,translational_slide,continuous_rain,NASA_COOLR_GSI,train
+COOLR-SK-005,2024-06-13,2024,Sikkim,North Sikkim,Mangan-Dzongu road breach,27.5124,88.5241,debris_flow,torrential_rain,NASA_COOLR_2024,test
+COOLR-SK-006,2011-09-18,2011,Sikkim,North Sikkim,Mangan earthquake induced slides,27.7215,88.3125,seismic_rock_avalanche,earthquake_rain,NASA_COOLR_GSI,train
+COOLR-AR-001,2023-06-25,2023,Arunachal Pradesh,West Kameng,Bhalukpong-Bomdila corridor,27.3521,92.4182,rockfall,cloudburst,NASA_COOLR_GSI,validation
+COOLR-AR-002,2021-05-18,2021,Arunachal Pradesh,Tawang,Tawang-Jang road avalanche,27.5854,91.8652,debris_avalanche,rain_snowmelt,NASA_COOLR_SDMA,train
+COOLR-AR-003,2022-06-29,2022,Arunachal Pradesh,Papum Pare,Itanagar capital complex hills,27.0982,93.6154,mudslide,continuous_rain,GSI_AR,validation
+COOLR-AR-004,2020-07-22,2020,Arunachal Pradesh,Lower Subansiri,Ziro valley approach road,27.5251,93.8214,debris_flow,monsoon_rain,NASA_COOLR_GSI,train
+COOLR-AR-005,2024-05-29,2024,Arunachal Pradesh,Upper Siang,Tuting-Yingkiong Siang river cuts,28.6214,94.9541,debris_slide,cyclone_remal_rain,NASA_COOLR_2024,test
+COOLR-AR-006,2015-06-28,2015,Arunachal Pradesh,Dibang Valley,Anini pass slope wash,28.7845,95.8924,rotational_slide,monsoon_rain,NASA_COOLR_GSI,train
+COOLR-AS-001,2022-05-15,2022,Assam,Dima Hasao,New Haflong railway station cut,25.1852,93.0251,massive_rotational_slide,torrential_rain,NASA_COOLR_GSI,validation
+COOLR-AS-002,2022-05-16,2022,Assam,Dima Hasao,Jatinga valley road slope failure,25.0741,93.1554,debris_flow,monsoon_rain,NASA_COOLR_SDMA,validation
+COOLR-AS-003,2022-06-20,2022,Assam,Cachar,Silchar hill periphery mudslide,24.8331,92.8014,mudslide,flooding_rain,GSI_AS,validation
+COOLR-AS-004,2023-08-04,2023,Assam,Kamrup Metropolitan,Guwahati Narakasur hill scarp,26.1721,91.7582,shallow_slide,urban_downpour,NASA_COOLR_GSI,validation
+COOLR-AS-005,2021-07-14,2021,Assam,Karbi Anglong,Diphu hilly corridor slope collapse,26.0125,93.4215,debris_flow,continuous_rain,GSI_AS,train
+COOLR-AS-006,2024-05-28,2024,Assam,Dima Hasao,Mahur hills slope slump,25.2954,93.1124,debris_slide,cyclone_remal_rain,NASA_COOLR_2024,test
+COOLR-ML-001,2023-06-16,2023,Meghalaya,East Khasi Hills,Mawkdok bridge gorge scarp,25.5341,91.8682,debris_flow,monsoon_rain,NASA_COOLR_GSI,validation
+COOLR-ML-002,2022-06-18,2022,Meghalaya,East Khasi Hills,Sohra / Cherrapunji escarpment failure,25.3012,91.7125,mudslide,downpour,NASA_COOLR_GSI,validation
+COOLR-ML-003,2023-07-02,2023,Meghalaya,Ri-Bhoi,Umsning NH-40 corridor collapse,25.7551,91.9054,rockfall,continuous_rain,GSI_ML,validation
+COOLR-ML-004,2021-08-11,2021,Meghalaya,West Jaintia Hills,Jowai-Amlarem road slide,25.4412,92.1951,translational_slide,monsoon_rain,NASA_COOLR_SDMA,train
+COOLR-ML-005,2020-09-24,2020,Meghalaya,East Garo Hills,Williamnagar river scarp slide,25.6021,90.5842,debris_flow,tropical_depression,NASA_COOLR_GSI,train
+COOLR-ML-006,2024-05-28,2024,Meghalaya,East Khasi Hills,Shillong Peak road slip,25.5681,91.8824,shallow_slide,cyclone_remal,NASA_COOLR_2024,test
+COOLR-NL-001,2023-07-04,2023,Nagaland,Kohima,Phesama NH-29 sinking zone,25.6321,94.1082,rotational_slide,monsoon_rain,NASA_COOLR_GSI,validation
+COOLR-NL-002,2021-08-18,2021,Nagaland,Dimapur,Chumukedima rockslide NH-29,25.8214,93.7541,rockfall,continuous_rain,GSI_NL,train
+COOLR-NL-003,2022-06-25,2022,Nagaland,Mokokchung,Mokokchung-Mariani highway cut,26.3251,94.5214,debris_slide,monsoon_rain,NASA_COOLR_SDMA,validation
+COOLR-NL-004,2020-07-15,2020,Nagaland,Wokha,Wokha town hillside slump,26.1025,94.2651,mudslide,downpour,NASA_COOLR_GSI,train
+COOLR-NL-005,2024-07-10,2024,Nagaland,Phek,Phek-Meluri road collapse,25.6841,94.4925,translational_slide,torrential_rain,NASA_COOLR_2024,test
+COOLR-MN-001,2022-06-30,2022,Manipur,Noney,Tupul railway construction camp,24.7852,93.6821,massive_debris_slide,continuous_deluge,NASA_COOLR_GSI,validation
+COOLR-MN-002,2021-08-05,2021,Manipur,Senapati,Senapati NH-2 hill scarp slip,25.2651,94.0214,translational_slide,monsoon_rain,GSI_MN,train
+COOLR-MN-003,2020-07-11,2020,Manipur,Tamenglong,Tamenglong headquarters slope collapse,24.9854,93.4952,mudslide,monsoon_rain,NASA_COOLR_SDMA,train
+COOLR-MN-004,2023-06-18,2023,Manipur,Churachandpur,Tipaimukh road cut scarp,24.3315,93.6751,debris_flow,continuous_rain,NASA_COOLR_GSI,validation
+COOLR-MN-005,2024-05-29,2024,Manipur,Kangpokpi,Imphal-Dimapur NH-2 sinking zone,25.1524,93.9782,debris_slide,cyclone_remal,NASA_COOLR_2024,test
+COOLR-MZ-001,2024-05-28,2024,Mizoram,Aizawl,Melthum stone quarry collapse,23.7315,92.7172,stone_quarry_scarp_collapse,cyclone_remal_deluge,NASA_COOLR_2024,test
+COOLR-MZ-002,2022-06-12,2022,Mizoram,Lunglei,Lunglei southern approach road,22.8854,92.7421,mudslide,monsoon_rain,NASA_COOLR_GSI,validation
+COOLR-MZ-003,2021-07-28,2021,Mizoram,Champhai,Champhai-Zokhawthar border highway,23.4751,93.3284,debris_flow,continuous_rain,GSI_MZ,train
+COOLR-MZ-004,2023-08-08,2023,Mizoram,Serchhip,Serchhip scarp failure,23.3412,92.8521,rotational_slide,monsoon_rain,NASA_COOLR_SDMA,validation
+COOLR-MZ-005,2020-08-22,2020,Mizoram,Kolasib,Vairengte NH-54 corridor collapse,24.2254,92.6851,shallow_slide,downpour,NASA_COOLR_GSI,train
+COOLR-TR-001,2023-06-20,2023,Tripura,North Tripura,Jampui Hills Vanghmun ridge road,23.9541,92.2854,debris_slide,monsoon_rain,NASA_COOLR_GSI,validation
+COOLR-TR-002,2022-07-15,2022,Tripura,Dhalai,Ambassa-Kamalpur highway slope,23.9215,91.8542,mudslide,continuous_rain,GSI_TR,validation
+COOLR-TR-003,2021-08-10,2021,Tripura,Gomati,Amarpur hill scarp slip,23.5321,91.6425,shallow_slide,downpour,NASA_COOLR_SDMA,train
+COOLR-TR-004,2024-08-21,2024,Tripura,South Tripura,Santirbazar hilly road collapse,23.2985,91.5621,debris_flow,flooding_rain,NASA_COOLR_2024,test

@@ -1,0 +1,188 @@
+{
+  "dataset_name": "Apda Mitra Verified Positive Landslide Dataset",
+  "description": "Canonical dataset of verified positive landslide events joined with genuine multi-source environmental features (NASA POWER rainfall, NASA GMAO MERRA-2 soil moisture, Copernicus DEM GLO-30 terrain).",
+  "total_verified_landslide_events": 932,
+  "target_variable": {
+    "name": "landslide",
+    "value": 1,
+    "interpretation": "Confirmed occurrence of ground failure / mass movement"
+  },
+  "feature_summary": {
+    "metadata_columns": [
+      "event_id",
+      "event_date",
+      "latitude",
+      "longitude",
+      "state",
+      "source_catalog",
+      "source_dataset"
+    ],
+    "required_ml_features": [
+      "rainfall_1d",
+      "rainfall_3d",
+      "rainfall_7d",
+      "rainfall_15d",
+      "rainfall_30d",
+      "soil_moisture",
+      "soil_moisture_anomaly",
+      "elevation",
+      "slope",
+      "aspect",
+      "curvature"
+    ],
+    "total_feature_columns": 11
+  },
+  "validation_audit": {
+    "status": "PASSED_STRICT_VALIDATION",
+    "duplicate_event_ids": 0,
+    "coordinates_within_valid_bounds": true,
+    "coordinate_bounds": {
+      "latitude_min": 22.479,
+      "latitude_max": 32.764,
+      "longitude_min": 75.957,
+      "longitude_max": 96.926
+    },
+    "terrain_values_within_physical_bounds": true,
+    "non_numeric_feature_count": 0,
+    "arbitrary_fill_values_applied": false,
+    "authenticity_verification": "Strictly genuine satellite, reanalysis, and DSM observations; 0 synthetic or random values"
+  },
+  "completeness_summary": {
+    "total_rows": 932,
+    "complete_rows": 932,
+    "incomplete_rows": 0,
+    "complete_rows_pct": 100.0,
+    "missing_values_total": 0,
+    "missing_values_by_column": {
+      "event_id": 0,
+      "event_date": 0,
+      "latitude": 0,
+      "longitude": 0,
+      "state": 0,
+      "source_catalog": 0,
+      "source_dataset": 0,
+      "rainfall_1d": 0,
+      "rainfall_3d": 0,
+      "rainfall_7d": 0,
+      "rainfall_15d": 0,
+      "rainfall_30d": 0,
+      "soil_moisture": 0,
+      "soil_moisture_anomaly": 0,
+      "elevation": 0,
+      "slope": 0,
+      "aspect": 0,
+      "curvature": 0,
+      "landslide": 0
+    }
+  },
+  "spatial_and_catalog_distribution": {
+    "events_by_state": {
+      "Uttarakhand": 222,
+      "Himachal Pradesh": 208,
+      "Manipur": 102,
+      "Assam": 94,
+      "Nagaland": 91,
+      "Arunachal Pradesh": 74,
+      "Sikkim": 56,
+      "Mizoram": 39,
+      "Meghalaya": 38,
+      "Tripura": 8
+    },
+    "events_by_source_catalog": {
+      "GLC": 931,
+      "LRC": 1
+    }
+  },
+  "feature_summary_statistics": {
+    "rainfall_1d": {
+      "mean": 19.3052,
+      "std": 25.3169,
+      "min": 0.0,
+      "median": 10.3,
+      "max": 158.4
+    },
+    "rainfall_3d": {
+      "mean": 53.8821,
+      "std": 52.7276,
+      "min": 0.0,
+      "median": 37.61,
+      "max": 364.97
+    },
+    "rainfall_7d": {
+      "mean": 99.4077,
+      "std": 76.2043,
+      "min": 0.0,
+      "median": 85.55,
+      "max": 533.46
+    },
+    "rainfall_15d": {
+      "mean": 177.0197,
+      "std": 107.966,
+      "min": 0.0,
+      "median": 166.555,
+      "max": 698.26
+    },
+    "rainfall_30d": {
+      "mean": 313.1479,
+      "std": 166.0735,
+      "min": 0.28,
+      "median": 306.455,
+      "max": 1010.05
+    },
+    "soil_moisture": {
+      "mean": 0.844,
+      "std": 0.1209,
+      "min": 0.32,
+      "median": 0.88,
+      "max": 1.0
+    },
+    "soil_moisture_anomaly": {
+      "mean": 1.1699,
+      "std": 0.7674,
+      "min": -1.4668,
+      "median": 1.1894,
+      "max": 3.4222
+    },
+    "elevation": {
+      "mean": 1321.6934,
+      "std": 969.0712,
+      "min": 19.55,
+      "median": 1207.1,
+      "max": 5894.65
+    },
+    "slope": {
+      "mean": 21.1344,
+      "std": 13.1137,
+      "min": 0.0,
+      "median": 20.235,
+      "max": 60.4
+    },
+    "aspect": {
+      "mean": 181.5331,
+      "std": 106.8424,
+      "min": 0.0,
+      "median": 186.835,
+      "max": 359.57
+    },
+    "curvature": {
+      "mean": -0.0,
+      "std": 0.0071,
+      "min": -0.0296,
+      "median": 0.0001,
+      "max": 0.0511
+    }
+  },
+  "input_sources": {
+    "clean_landslide_events": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\clean_landslide_events.csv",
+    "rainfall_features": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\landslide_rainfall_features.csv",
+    "soil_features": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\landslide_soil_features.csv",
+    "terrain_features": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\landslide_terrain_features.csv"
+  },
+  "output_artifacts": {
+    "positive_dataset_csv": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\positive_landslide_dataset.csv",
+    "positive_dataset_report_json": "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\ml\\data\\positive_dataset_report.json"
+  },
+  "generation_telemetry": {
+    "generated_timestamp_utc": "2026-09-14T06:26:34.130752+00:00"
+  }
+}

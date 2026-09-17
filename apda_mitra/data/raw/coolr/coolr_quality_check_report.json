@@ -1,0 +1,54 @@
+{
+  "title": "NASA COOLR Data Quality Funnel (10-State Himalayan & Northeast Region)",
+  "timestamp": "2026-09-12T16:30:48.117162+00:00",
+  "api_standard": "NASA API-V2 Compliant (2026)",
+  "funnel_stages": [
+    {
+      "stage": 1,
+      "name": "Total COOLR records ingested",
+      "count": 85
+    },
+    {
+      "stage": 2,
+      "name": "Records in target 10-state region",
+      "count": 77
+    },
+    {
+      "stage": 3,
+      "name": "Records with valid coordinates",
+      "count": 76
+    },
+    {
+      "stage": 4,
+      "name": "Records with valid dates (2000-2025)",
+      "count": 75
+    },
+    {
+      "stage": 5,
+      "name": "Duplicate multi-source records removed",
+      "count": 2
+    },
+    {
+      "stage": 6,
+      "name": "Final usable landslide events",
+      "count": 73
+    }
+  ],
+  "state_wise_distribution": {
+    "Himachal Pradesh": 16,
+    "Uttarakhand": 14,
+    "Sikkim": 6,
+    "Arunachal Pradesh": 6,
+    "Assam": 6,
+    "Meghalaya": 6,
+    "Nagaland": 5,
+    "Manipur": 5,
+    "Mizoram": 5,
+    "Tripura": 4
+  },
+  "primary_destinations": [
+    "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\apda_mitra\\data\\raw\\coolr\\coolr_target_region.csv",
+    "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\backend\\ai\\data\\raw\\coolr\\coolr_target_region.csv",
+    "C:\\Users\\Acer\\OneDrive\\Desktop\\Disaster MAngement\\backend\\ai\\datasets\\raw\\coolr_target_region.csv"
+  ]
+}

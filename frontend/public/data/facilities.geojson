@@ -1,0 +1,64 @@
+{
+  "type": "FeatureCollection",
+  "name": "Apda-Mitra Emergency Facilities",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "fac-01",
+        "name": "Meppadi Fire & Rescue Station (Unit 12)",
+        "nameHi": "मेप्पाडी अग्निशमन एवं बचाव केंद्र",
+        "category": "Emergency Facility",
+        "risk_level": "safe",
+        "status": "Operational 24/7",
+        "contact": "101",
+        "description": "Equipped with rubberized rescue dinghies, high-capacity dewatering pumps, and portable lighting masts.",
+        "source": "Kerala Fire & Rescue Services",
+        "updated_at": "Command Verification"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [76.1310, 11.6840]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "fac-02",
+        "name": "Vythiri Police Sub-Divisional Command Hub",
+        "nameHi": "वैथिरी पुलिस नियंत्रण कक्ष",
+        "category": "Emergency Facility",
+        "risk_level": "safe",
+        "status": "Operational 24/7",
+        "contact": "112",
+        "description": "Central communication node handling satellite Ham radio links and tactical crowd control dispatch.",
+        "source": "District Police Headquarters",
+        "updated_at": "Command Verification"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [76.1180, 11.6650]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "fac-03",
+        "name": "NDRF 4th Battalion Staging Base Camp",
+        "nameHi": "एनडीआरएफ 4th बटालियन बेस कैंप",
+        "category": "Emergency Facility",
+        "risk_level": "safe",
+        "status": "Operational 24/7",
+        "contact": "1078",
+        "description": "50-member specialized rescue company equipped with victim location radars and heavy cutting gear.",
+        "source": "National Disaster Response Force (NDRF)",
+        "updated_at": "Command Verification"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [76.1420, 11.6960]
+      }
+    }
+  ]
+}
